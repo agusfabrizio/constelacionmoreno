@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constelación Dinámica PLAN MARCO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --panel-bg: rgba(255, 255, 255, 0.98);
+            --text-main: #2c3e50;
+            --border-color: #dcdde1;
+            --danger: #e74c3c;
+            /* Colores de Vínculos */
+            --color-jerarquica: #9E9E9E;
+            --color-positiva: #6B8E23;
+            --color-negativa: #FF7675;
+            --color-tecnica: #F39C12;
+            --color-financiacion: #27AE60;
+            --color-presion: #C0392B;
+            --color-regulacion: #8E44AD;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+            color: var(--text-main);
+        }
+
+        #viz-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+        svg:active { cursor: grabbing; }
+
+        .orbita {
+            fill: none;
+            stroke: #bdc3c7;
+            stroke-width: 1px;
+            stroke-dasharray: 4, 4;
+            opacity: 0.4;
+        }
+
+        .node circle {
+            stroke: #fff;
+            stroke-width: 2px;
+            cursor: pointer;
+            transition: stroke-width 0.2s ease, filter 0.2s ease;
+        }
+        .node:hover circle { stroke: #000; stroke-width: 3px; }
+        
+        /* ESCALA DE GRISES ESTRATÉGICA */
+        .node-centro circle { fill: #000000; }
+        .node-estado-nacional circle { fill: #333333; }
+        .node-estado-provincial circle { fill: #555555; }
+        .node-estado-municipal circle { fill: #777777; }
+        .node-civil-territorial circle { fill: #999999; }
+        .node-civil-institucional circle { fill: #bbbbbb; }
+        .node-mercado-empresas circle { fill: #d1d1d1; } 
+        .node-marco-legal-normas circle { fill: #e9e9e9; stroke: #ccc; }
+
+        .node text {
+            font-size: 11px;
+            font-weight: 700;
+            fill: #333;
+            pointer-events: none;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        .node text tspan {
+            paint-order: stroke;
+            stroke: #fff;
+            stroke-width: 3px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .node-centro text tspan { fill: #fff; stroke: none; font-size: 15px; }
+
+        /* Estilos de Vínculos (Colores mantenidos) */
+        .link { stroke-opacity: 0.8; fill: none; transition: stroke-width 0.2s; }
+        .link:hover { stroke-opacity: 1; stroke-width: 6px !important; }
+        .link-jerarquica { stroke: var(--color-jerarquica); stroke-width: 2px; }
+        .link-positiva { stroke: var(--color-positiva); stroke-width: 2.5px; }
+        .link-negativa { stroke: var(--color-negativa); stroke-width: 3px; stroke-dasharray: 8, 4; }
+        .link-tecnica { stroke: var(--color-tecnica); stroke-width: 2px; stroke-dasharray: 2, 4; }
+        .link-financiacion { stroke: var(--color-financiacion); stroke-width: 3.5px; }
+        .link-presion { stroke: var(--color-presion); stroke-width: 3px; stroke-dasharray: 6, 6; }
+        .link-regulacion { stroke: var(--color-regulacion); stroke-width: 2px; }
+
+        .global-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; }
+        .icon-btn { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.08); }
+        .icon-btn:hover { background: #eef2f7; }
+
+        #control-panel { 
+            position: absolute; 
+            top: 75px; 
+            right: 20px; 
+            width: 200px; /* Reduced by 40% (was 330) */
+            background: var(--panel-bg); 
+            padding: 12px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12); 
+            max-height: calc(100vh - 100px); 
+            overflow-y: auto; 
+            border: 1px solid var(--border-color); 
+            transition: transform 0.3s; 
+            transform-origin: top right;
+        }
+        #control-panel.hidden { transform: scale(0.9) translateX(150%); opacity: 0; pointer-events: none; }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 9px; font-weight: 800; margin-bottom: 4px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="text"], select, button { width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 11px; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+        
+        button { background-color: var(--text-main); color: white; font-weight: bold; cursor: pointer; border: none; margin-top: 5px; transition: filter 0.2s; }
+        button:hover { filter: brightness(1.2); }
+        .btn-danger { background-color: var(--danger); }
+
+        /* LEYENDA TÉCNICA */
+        #leyenda { 
+            position: absolute; 
+            bottom: 20px; 
+            left: 20px; 
+            background: var(--panel-bg); 
+            padding: 10px; 
+            border-radius: 10px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1); 
+            width: 150px; /* Reduced by 40% (was 250) */
+            border: 1px solid var(--border-color);
+        }
+        #leyenda.hidden { opacity: 0; }
+        .leyenda-seccion { margin-bottom: 6px; }
+        .leyenda-seccion:last-child { margin-bottom: 0; }
+        .leyenda-seccion h4 { margin: 0 0 4px 0; font-size: 9px; text-transform: uppercase; border-bottom: 2px solid #f0f2f5; padding-bottom: 2px; color: #999; letter-spacing: 0.5px; }
+        .leyenda-item { margin-bottom: 1px; display: flex; align-items: center; font-size: 9px; font-weight: 600; color: #444; cursor: pointer; transition: opacity 0.2s;}
+        .leyenda-item:hover { opacity: 0.6; }
+        .leyenda-color { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
+        
+        .leyenda-linea-wrap { display: flex; align-items: center; margin-bottom: 2px; font-size: 11px; font-weight: 600; color: #444; }
+        .leyenda-linea { width: 35px; height: 0; margin-right: 8px; border-top-width: 4px; border-top-style: solid; flex-shrink: 0; }
+
+        .faded { opacity: 0.1 !important; transition: opacity 0.3s ease; }
+
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+            @page { size: A3 landscape; margin: 0; }
+            body { background-color: white !important; margin: 0; padding: 0; overflow: visible !important; }
+            #control-panel, .global-controls, .zoom-btn { display: none !important; }
+            #viz-container { width: 100%; height: auto !important; display: block !important; overflow: visible !important; position: static !important; }
+            svg#network { width: 100%; height: 98vh; page-break-after: always; break-after: page; display: block; }
+            #leyenda { 
+                position: static !important; 
+                box-shadow: none !important; 
+                border: none !important; 
+                background: white !important; 
+                opacity: 1 !important; 
+                width: 100%; 
+                max-height: none !important;
+                page-break-before: always; 
+                break-before: page;
+                padding: 40px;
+                box-sizing: border-box;
+            }
+            .leyenda-seccion { margin-bottom: 30px; }
+            .leyenda-seccion h4 { font-size: 16px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 8px; color: #333; }
+            .leyenda-item { font-size: 12px; margin-bottom: 8px; }
+            .leyenda-color { width: 12px; height: 12px; margin-right: 10px; }
+        }
+
+        /* LIST VIEW STYLES */
+        #list-view {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255,255,255,0.98); z-index: 2000;
+            display: none; flex-direction: column; padding: 40px; box-sizing: border-box;
+            overflow-y: auto; font-family: 'Roboto', sans-serif;
+        }
+        #list-view.active { display: flex; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 3px solid var(--text-main); padding-bottom: 15px; }
+        .list-header h2 { margin: 0; color: var(--text-main); }
+        .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .list-category { margin-bottom: 40px; }
+        .list-category h3 { background: #f0f2f5; padding: 10px 15px; border-radius: 8px; font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 15px; }
+        .list-item { background: white; border: 1px solid #eee; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .list-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .list-item-name { font-weight: bold; color: var(--text-main); font-size: 16px; }
+        .list-item-ring { font-size: 11px; background: #eee; padding: 3px 8px; border-radius: 20px; color: #555; }
+        .list-relations { font-size: 12px; color: #666; }
+        .relation-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; margin: 2px; font-size: 10px; color: white; }
+        .close-list { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="viz-container">
+        <div class="global-controls">
+            <button class="icon-btn" onclick="toggleMode()" id="btn-mode">❄️ FIJAR MAPA</button>
+            <button class="icon-btn" onclick="toggleListView()">📋 LISTA</button>
+            <button class="icon-btn" onclick="printPDF()">🖨️ EXPORTAR PDF A3</button>
+            <button class="icon-btn" onclick="exportHTML()" id="btn-export-web">🌐 EXPORTAR WEB</button>
+            <button class="icon-btn" onclick="togglePanel()" id="toggle-btn">⚙️ PANEL</button>
+        </div>
+
+        <svg id="network">
+            <defs>
+                <!-- Definición de flechas con colores correspondientes -->
+                <marker id="arrow-jerarquica" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#9E9E9E"></path></marker>
+                <marker id="arrow-positiva" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#6B8E23"></path></marker>
+                <marker id="arrow-negativa" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#FF7675"></path></marker>
+                <marker id="arrow-tecnica" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#F39C12"></path></marker>
+                <marker id="arrow-financiacion" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#27AE60"></path></marker>
+                <marker id="arrow-presion" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#C0392B"></path></marker>
+                <marker id="arrow-regulacion" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#8E44AD"></path></marker>
+                
+                <marker id="arrow-jerarquica-rev" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M10,-5L0,0L10,5" fill="#9E9E9E"></path></marker>
+                <marker id="arrow-positiva-rev" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M10,-5L0,0L10,5" fill="#6B8E23"></path></marker>
+                <marker id="arrow-negativa-rev" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M10,-5L0,0L10,5" fill="#FF7675"></path></marker>
+                <marker id="arrow-tecnica-rev" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M10,-5L0,0L10,5" fill="#F39C12"></path></marker>
+                <marker id="arrow-financiacion-rev" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M10,-5L0,0L10,5" fill="#27AE60"></path></marker>
+                <marker id="arrow-presion-rev" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M10,-5L0,0L10,5" fill="#C0392B"></path></marker>
+                <marker id="arrow-regulacion-rev" viewBox="0 -5 10 10" refX="0" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M10,-5L0,0L10,5" fill="#8E44AD"></path></marker>
+            </defs>
+            <g id="zoom-container">
+                <g id="orbitas-layer"></g>
+                <g id="links-layer"></g>
+                <g id="nodes-layer"></g>
+            </g>
+        </svg>
+
+        <div id="leyenda">
+            <div class="leyenda-seccion">
+                <h4>Actores (Jerarquía)</h4>
+                <div class="leyenda-item" onclick="filterGraph('group', 'centro')"><span class="leyenda-color" style="background:#000000"></span>PLAN MARCO</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'estado-nacional')"><span class="leyenda-color" style="background:#333333"></span>Estado (Nacional)</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'estado-provincial')"><span class="leyenda-color" style="background:#555555"></span>Estado (Provincial)</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'estado-municipal')"><span class="leyenda-color" style="background:#777777"></span>Estado (Municipal)</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'civil-territorial')"><span class="leyenda-color" style="background:#999999"></span>Organización Territorial</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'civil-institucional')"><span class="leyenda-color" style="background:#bbbbbb"></span>Institución Social</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'mercado-empresas')"><span class="leyenda-color" style="background:#d1d1d1"></span>Mercado / Empresas</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'marco-legal-normas')"><span class="leyenda-color" style="background:#e9e9e9"></span>Marco Legal (Normas)</div>
+            </div>
+            
+            <div class="leyenda-seccion">
+                <h4>Vínculos Relacionales</h4>
+                <div class="leyenda-item" onclick="filterGraph('link', 'jerarquica')"><span class="leyenda-color" style="background:#9E9E9E"></span>Dependencia jerárquica</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'positiva')"><span class="leyenda-color" style="background:#6B8E23"></span>Relación positiva</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'negativa')"><span class="leyenda-color" style="background:#FF7675"></span>Relación negativa</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'tecnica')"><span class="leyenda-color" style="background:#F39C12"></span>Relación técnica/funcional</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'financiacion')"><span class="leyenda-color" style="background:#27AE60"></span>Financiación</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'presion')"><span class="leyenda-color" style="background:#C0392B"></span>Presión / Reclamo</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'regulacion')"><span class="leyenda-color" style="background:#8E44AD"></span>Regulación / Control</div>
+            </div>
+        </div>
+
+        <div id="control-panel">
+            <h3>Gestión de Actor</h3>
+            <div class="form-group">
+                <label>Nombre Actor</label>
+                <input type="text" id="edit-node-name" placeholder="Selecciona un nodo...">
+                <button onclick="renameNode()" style="background-color: #2980b9; margin-top: 10px;">Guardar Cambios</button>
+            </div>
+            <div class="form-group">
+                <label>Peso Estratégico (Radio)</label>
+                <select id="edit-node-select" onchange="loadNodeRadius()" style="display:none"></select>
+                <select id="edit-node-radius" onchange="liveUpdateRadius(this.value)">
+                    <option value="15">Tamaño 1 (15px)</option>
+                    <option value="20">Tamaño 2 (20px)</option>
+                    <option value="25">Tamaño 3 (25px)</option>
+                    <option value="30">Tamaño 4 (30px)</option>
+                    <option value="35">Tamaño 5 (35px)</option>
+                    <option value="40">Tamaño 6 (40px)</option>
+                    <option value="45">Tamaño 7 (45px)</option>
+                    <option value="50">Tamaño 8 (50px)</option>
+                    <option value="55">Tamaño 9 (55px)</option>
+                    <option value="60">Tamaño 10 (60px)</option>
+                </select>
+            </div>
+            <button onclick="deleteNode()" class="btn-danger">🗑️ ELIMINAR ACTOR</button>
+
+            <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
+
+            <h3>Nuevo Nodo</h3>
+            <div class="form-group"><input type="text" id="node-id" placeholder="Nombre completo"></div>
+            <div class="form-group">
+                <select id="node-group">
+                    <option value="estado-nacional">Estado (Nacional)</option>
+                    <option value="estado-provincial">Estado (Provincial)</option>
+                    <option value="estado-municipal">Estado (Municipal)</option>
+                    <option value="civil-territorial">Organización Territorial</option>
+                    <option value="civil-institucional">Institución Social</option>
+                    <option value="mercado-empresas">Mercado / Empresa</option>
+                    <option value="marco-legal-normas">Marco Legal / Norma</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="node-ring">
+                    <option value="1">Anillo 1 - Alta Injerencia</option>
+                    <option value="2">Anillo 2 - Media Injerencia</option>
+                    <option value="3">Anillo 3 - Baja Injerencia</option>
+                    <option value="4">Anillo 4 - Satélite Externo</option>
+                </select>
+            </div>
+            <button onclick="addNode()" style="background-color: #27ae60;">Añadir a Constelación</button>
+
+            <h3 style="margin-top: 25px;">Trazar Dependencia</h3>
+            <div class="form-group"><label>Origen</label><select id="link-source"></select></div>
+            <div class="form-group"><label>Destino</label><select id="link-target"></select></div>
+            <div class="form-group">
+                <select id="link-type">
+                    <option value="jerarquica">Dependencia jerárquica</option>
+                    <option value="positiva">Relación positiva</option>
+                    <option value="negativa">Relación negativa</option>
+                    <option value="tecnica">Relación técnica/funcional</option>
+                    <option value="financiacion">Financiación</option>
+                    <option value="presion">Presión / Reclamo</option>
+                    <option value="regulacion">Regulación / Control</option>
+                </select>
+                <label class="checkbox-label" style="margin-top:10px;"><input type="checkbox" id="link-bidi"> Reciprocidad (Doble Flecha)</label>
+            </div>
+            <button onclick="addLink()">Establecer Vínculo</button>
+        </div>
+    </div>
+
+    <div id="list-view">
+        <div class="list-header">
+            <h2>Inventario de Actores y Vínculos</h2>
+            <button class="close-list" onclick="toggleListView()">CERRAR VISTA</button>
+        </div>
+        <div id="list-content"></div>
+    </div>
+
+    <script>
+        let selectedNodeId = null;
+
+        // Persistencia
+        let isStaticMode = false;
+
+        function saveToLocal() {
+            localStorage.setItem('constelacion_nodes', JSON.stringify(nodesData.map(n => ({ 
+                id: n.id, group: n.group, anillo: n.anillo, radius: n.radius,
+                x: n.x, y: n.y, fx: n.fx, fy: n.fy
+            }))));
+            localStorage.setItem('constelacion_links', JSON.stringify(linksData.map(l => ({ 
+                source: l.source.id || l.source, 
+                target: l.target.id || l.target, 
+                tipo: l.tipo, 
+                bidi: l.bidi 
+            }))));
+            localStorage.setItem('constelacion_mode', isStaticMode);
+        }
+
+        function loadFromLocal() {
+            const sn = localStorage.getItem('constelacion_nodes');
+            const sl = localStorage.getItem('constelacion_links');
+            const sm = localStorage.getItem('constelacion_mode');
+            
+            // Si hay datos guardados, sobrescribimos los arreglos por completo para respetar eliminaciones
+            if(sn) {
+                nodesData = JSON.parse(sn);
+            }
+            if(sl) {
+                linksData = JSON.parse(sl);
+            }
+            if(sm === 'true') {
+                isStaticMode = true;
+                setTimeout(() => { 
+                    const btn = document.getElementById("btn-mode");
+                    if(btn) btn.innerText = "🌬️ LIBERAR MAPA"; 
+                }, 100);
+            }
+        }
+
+        let nodesData = [
+            { id: "PLAN MARCO", group: "centro", anillo: 0, radius: 54 },
+            { id: "INTENDENCIA", group: "estado-municipal", anillo: 1, radius: 35 },
+            { id: "IDUAR", group: "estado-municipal", anillo: 1, radius: 25 },
+            { id: "OBRAS PÚBLICAS", group: "estado-municipal", anillo: 1, radius: 25 },
+            { id: "DEL. CUARTEL V", group: "estado-municipal", anillo: 2, radius: 20 },
+            { id: "HCD", group: "estado-municipal", anillo: 1, radius: 30 },
+            { id: "OPISU", group: "estado-provincial", anillo: 3, radius: 25 },
+            { id: "COMIREC", group: "estado-provincial", anillo: 3, radius: 25 },
+            { id: "MIN. INFRAESTRUCTURA", group: "estado-provincial", anillo: 4, radius: 25 },
+            { id: "SISU", group: "estado-nacional", anillo: 3, radius: 25 },
+            { id: "FISCALÍAS", group: "estado-provincial", anillo: 4, radius: 20 },
+            { id: "JUZGADOS / DEF.", group: "estado-provincial", anillo: 4, radius: 20 },
+            { id: "UNM", group: "civil-institucional", anillo: 3, radius: 20 },
+            { id: "FADU", group: "civil-institucional", anillo: 4, radius: 20 },
+            { id: "POLICÍA", group: "estado-provincial", anillo: 3, radius: 20 },
+            { id: "LEY 8912", group: "marco-legal-normas", anillo: 3, radius: 25 },
+            { id: "LEY HÁBITAT", group: "marco-legal-normas", anillo: 3, radius: 25 },
+            { id: "CÓDIGO URBANO", group: "marco-legal-normas", anillo: 2, radius: 22 },
+            { id: "MADRE TIERRA", group: "civil-institucional", anillo: 3, radius: 20 },
+            { id: "TECHO", group: "civil-institucional", anillo: 3, radius: 20 },
+            { id: "MOV. SOCIALES", group: "civil-territorial", anillo: 2, radius: 25 },
+            { id: "COOPERATIVAS", group: "civil-territorial", anillo: 3, radius: 20 },
+            { id: "SOC. FOMENTO", group: "civil-institucional", anillo: 3, radius: 18 },
+            { id: "OCUPANTES", group: "civil-territorial", anillo: 2, radius: 25 },
+            { id: "LOTEADORES INF.", group: "mercado-empresas", anillo: 4, radius: 20 },
+            { id: "PUNTEROS", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { id: "INMOBILIARIAS", group: "mercado-empresas", anillo: 3, radius: 22 },
+            { id: "PROFESIONALES", group: "mercado-empresas", anillo: 3, radius: 18 },
+            { id: "SERVICIOS", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { id: "CORRALONES", group: "mercado-empresas", anillo: 3, radius: 20 }
+        ];
+
+        let linksData = [
+            { source: "INTENDENCIA", target: "IDUAR", tipo: "jerarquica", bidi: false },
+            { source: "INTENDENCIA", target: "OBRAS PÚBLICAS", tipo: "jerarquica", bidi: false },
+            { source: "OPISU", target: "INTENDENCIA", tipo: "financiacion", bidi: false },
+            { source: "COMIREC", target: "OBRAS PÚBLICAS", tipo: "financiacion", bidi: false },
+            { source: "SISU", target: "MOV. SOCIALES", tipo: "financiacion", bidi: false },
+            { source: "IDUAR", target: "OBRAS PÚBLICAS", tipo: "negativa", bidi: false },
+            { source: "OBRAS PÚBLICAS", target: "DEL. CUARTEL V", tipo: "jerarquica", bidi: false },
+            { source: "DEL. CUARTEL V", target: "OBRAS PÚBLICAS", tipo: "presion", bidi: false },
+            { source: "HCD", target: "IDUAR", tipo: "tecnica", bidi: false },
+            { source: "OCUPANTES", target: "DEL. CUARTEL V", tipo: "presion", bidi: false },
+            { source: "LOTEADORES INF.", target: "OCUPANTES", tipo: "tecnica", bidi: false },
+            { source: "LOTEADORES INF.", target: "IDUAR", tipo: "negativa", bidi: false },
+            { source: "PUNTEROS", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
+            { source: "POLICÍA", target: "OCUPANTES", tipo: "negativa", bidi: false },
+            { source: "POLICÍA", target: "LOTEADORES INF.", tipo: "negativa", bidi: false },
+            { source: "LEY HÁBITAT", target: "IDUAR", tipo: "regulacion", bidi: false },
+            { source: "LEY 8912", target: "PROFESIONALES", tipo: "regulacion", bidi: false },
+            { source: "MADRE TIERRA", target: "IDUAR", tipo: "positiva", bidi: false },
+            { source: "TECHO", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
+            { source: "UNM", target: "IDUAR", tipo: "tecnica", bidi: false },
+            { source: "UNM", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
+            { source: "UNM", target: "COOPERATIVAS", tipo: "tecnica", bidi: false },
+            { source: "UNM", target: "OCUPANTES", tipo: "tecnica", bidi: false },
+            { source: "FADU", target: "IDUAR", tipo: "tecnica", bidi: false },
+            { source: "FADU", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
+            { source: "FADU", target: "COOPERATIVAS", tipo: "tecnica", bidi: false },
+            { source: "FADU", target: "OCUPANTES", tipo: "tecnica", bidi: false },
+            { source: "CORRALONES", target: "OCUPANTES", tipo: "positiva", bidi: false },
+            { source: "SERVICIOS", target: "OCUPANTES", tipo: "negativa", bidi: false },
+            { source: "PROFESIONALES", target: "IDUAR", tipo: "tecnica", bidi: false },
+            { source: "DEL. CUARTEL V", target: "INTENDENCIA", tipo: "presion", bidi: false },
+            { source: "IDUAR", target: "HCD", tipo: "presion", bidi: false },
+            { source: "TECHO", target: "OCUPANTES", tipo: "positiva", bidi: false },
+            { source: "INTENDENCIA", target: "POLICÍA", tipo: "jerarquica", bidi: false },
+            { source: "MOV. SOCIALES", target: "OCUPANTES", tipo: "positiva", bidi: false },
+            { source: "OBRAS PÚBLICAS", target: "LEY 8912", tipo: "regulacion", bidi: false },
+            { source: "HCD", target: "CÓDIGO URBANO", tipo: "regulacion", bidi: false }
+        ];
+
+        const svg = d3.select("#network"), zoomContainer = d3.select("#zoom-container"), layerOrbitas = d3.select("#orbitas-layer"), layerLinks = d3.select("#links-layer"), layerNodes = d3.select("#nodes-layer");
+        let width = window.innerWidth, height = window.innerHeight;
+
+        const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", (e) => zoomContainer.attr("transform", e.transform));
+        svg.call(zoom);
+
+        function printPDF() {
+            simulation.stop();
+            svg.attr("viewBox", `0 0 ${width} ${height}`).attr("width", "100%").attr("height", "100%");
+            svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity.translate(width/2, height/2).scale(0.6).translate(-width/2, -height/2))
+                .on("end", () => { 
+                    window.print(); 
+                    svg.attr("viewBox", null).attr("width", width).attr("height", height);
+                    simulation.alpha(0.1).restart(); 
+                });
+        }
+
+        let panelVisible = true;
+        function togglePanel() {
+            panelVisible = !panelVisible;
+            const cp = document.getElementById("control-panel");
+            if(cp) cp.classList.toggle("hidden", !panelVisible);
+            const leg = document.getElementById("leyenda");
+            if(leg) leg.classList.toggle("hidden", !panelVisible);
+            const tb = document.getElementById("toggle-btn");
+            if(tb) tb.innerText = panelVisible ? "⚙️ CERRAR" : "⚙️ PANEL";
+        }
+
+        let showBidi = true;
+
+        function toggleMode() {
+            isStaticMode = !isStaticMode;
+            const btn = document.getElementById("btn-mode");
+            if (isStaticMode) {
+                btn.innerText = "🌬️ LIBERAR MAPA";
+                nodesData.forEach(n => {
+                    if (n.id !== "PLAN MARCO") { n.fx = n.x; n.fy = n.y; }
+                });
+                simulation.stop();
+            } else {
+                btn.innerText = "❄️ FIJAR MAPA";
+                nodesData.forEach(n => {
+                    if (n.id !== "PLAN MARCO") { n.fx = null; n.fy = null; }
+                });
+                simulation.alpha(0.3).restart();
+            }
+            saveToLocal();
+        }
+
+        function exportHTML() {
+            saveToLocal();
+            const cleanNodes = nodesData.map(n => ({ 
+                id: n.id, group: n.group, anillo: n.anillo, radius: n.radius,
+                x: n.x, y: n.y, fx: n.fx, fy: n.fy
+            }));
+            const cleanLinks = linksData.map(l => ({ 
+                source: l.source.id || l.source, 
+                target: l.target.id || l.target, 
+                tipo: l.tipo, 
+                bidi: l.bidi 
+            }));
+            
+            const clone = document.documentElement.cloneNode(true);
+            
+            const panel = clone.querySelector("#control-panel");
+            if (panel) panel.remove();
+            
+            const btnWeb = clone.querySelector("#btn-export-web");
+            if (btnWeb) btnWeb.remove();
+            const btnPanel = clone.querySelector("#toggle-btn");
+            if (btnPanel) btnPanel.remove();
+            
+            clone.querySelector("#orbitas-layer").innerHTML = "";
+            clone.querySelector("#links-layer").innerHTML = "";
+            clone.querySelector("#nodes-layer").innerHTML = "";
+            
+            const dataScript = document.createElement("script");
+            dataScript.textContent = `
+                window.onload = function() {
+                    nodesData = ${JSON.stringify(cleanNodes).replace(/<\//g, "<\\/")};
+                    linksData = ${JSON.stringify(cleanLinks).replace(/<\//g, "<\\/")};
+                    updateGraph();
+                };
+            `;
+            clone.querySelector("body").appendChild(dataScript);
+            
+            const htmlContent = "<!DOCTYPE html>\n" + clone.outerHTML;
+            const blob = new Blob([htmlContent], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "constelacion_interactiva.html";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function toggleListView() {
+            const lv = document.getElementById("list-view");
+            lv.classList.toggle("active");
+            if(lv.classList.contains("active")) renderListView();
+        }
+
+        const categoryLabels = {
+            "centro": "Núcleo Estratégico",
+            "estado-nacional": "Estado (Nacional)",
+            "estado-provincial": "Estado (Provincial)",
+            "estado-municipal": "Estado (Municipal)",
+            "civil-territorial": "Organización Territorial",
+            "civil-institucional": "Institución Social",
+            "mercado-empresas": "Mercado / Empresas",
+            "marco-legal-normas": "Marco Legal (Normas)"
+        };
+
+        const linkColors = {
+            "jerarquica": "#9E9E9E", "positiva": "#6B8E23", "negativa": "#FF7675",
+            "tecnica": "#F39C12", "financiacion": "#27AE60", "presion": "#C0392B", "regulacion": "#8E44AD"
+        };
+
+        function renderListView() {
+            const container = document.getElementById("list-content");
+            container.innerHTML = "";
+            const groups = d3.groups(nodesData, d => d.group);
+            
+            groups.forEach(([group, nodes]) => {
+                const sec = document.createElement("div");
+                sec.className = "list-category";
+                sec.innerHTML = `<h3>${categoryLabels[group] || group}</h3>`;
+                const grid = document.createElement("div");
+                grid.className = "list-grid";
+                
+                nodes.forEach(n => {
+                    const item = document.createElement("div");
+                    item.className = "list-item";
+                    
+                    const relations = linksData.filter(l => (l.source.id || l.source) === n.id || (l.target.id || l.target) === n.id);
+                    const relHtml = relations.map(l => {
+                        const other = (l.source.id || l.source) === n.id ? (l.target.id || l.target) : (l.source.id || l.source);
+                        return `<span class="relation-tag" style="background:${linkColors[l.tipo]}">${l.tipo}: ${other}</span>`;
+                    }).join("");
+
+                    item.innerHTML = `
+                        <div class="list-item-header">
+                            <span class="list-item-name">${n.id}</span>
+                            <select class="list-item-ring" onchange="updateNodeRing('${n.id}', this.value)">
+                                <option value="0" ${n.anillo==0?'selected':''}>Centro</option>
+                                <option value="1" ${n.anillo==1?'selected':''}>Anillo 1</option>
+                                <option value="2" ${n.anillo==2?'selected':''}>Anillo 2</option>
+                                <option value="3" ${n.anillo==3?'selected':''}>Anillo 3</option>
+                                <option value="4" ${n.anillo==4?'selected':''}>Anillo 4</option>
+                            </select>
+                        </div>
+                        <div class="list-relations">
+                            <strong>Vínculos:</strong><br>${relHtml || 'Sin vínculos'}
+                        </div>
+                    `;
+                    grid.appendChild(item);
+                });
+                sec.appendChild(grid);
+                container.appendChild(sec);
+            });
+        }
+
+        function updateNodeRing(id, ring) {
+            const node = nodesData.find(n => n.id === id);
+            if(node) {
+                node.anillo = parseInt(ring);
+                updateGraph();
+            }
+        }
+
+        const distAnillos = { 1: 170, 2: 300, 3: 430, 4: 580 };
+        const simulation = d3.forceSimulation().force("link", d3.forceLink().id(d => d.id).strength(0.02)).force("charge", d3.forceManyBody().strength(-1800)).force("collide", d3.forceCollide().radius(d => d.radius + 45).iterations(3));
+
+        function drawOrbits() {
+            layerOrbitas.selectAll("circle").data([1,2,3,4]).join("circle").attr("class", "orbita").attr("cx", width/2).attr("cy", height/2).attr("r", d => distAnillos[d]);
+        }
+
+        function updateGraph() {
+            saveToLocal();
+            nodesData.forEach(d => { if (d.id === "PLAN MARCO") { d.fx = width/2; d.fy = height/2; } });
+            
+            const lk = layerLinks.selectAll("path").data(linksData, d => `${d.source?.id || d.source}-${d.target?.id || d.target}`);
+            lk.exit().remove();
+            const lkEnter = lk.enter().append("path").attr("class", d => `link link-${d.tipo}`);
+            const allLinks = lkEnter.merge(lk).attr("class", d => `link link-${d.tipo}`)
+                .attr("marker-end", d => `url(#arrow-${d.tipo})`)
+                .attr("marker-start", d => (d.bidi && showBidi) ? `url(#arrow-${d.tipo}-rev)` : null);
+
+            const nd = layerNodes.selectAll("g").data(nodesData, d => d.id);
+            nd.exit().remove();
+            const ndEnter = nd.enter().append("g").attr("class", d => `node node-${d.group}`).call(drag(simulation));
+            
+            ndEnter.append("circle");
+            ndEnter.append("text");
+
+            const allNodes = ndEnter.merge(nd);
+            allNodes.select("circle").attr("r", d => d.radius);
+
+            allNodes.select("text").each(function(d) {
+                const el = d3.select(this); el.selectAll("tspan").remove();
+                const words = d.id.split(/\s+/);
+                if (words.length > 1 && d.id.length > 12) {
+                    const mid = Math.ceil(words.length / 2);
+                    el.append("tspan").attr("x", 0).attr("dy", "-0.6em").text(words.slice(0, mid).join(" "));
+                    el.append("tspan").attr("x", 0).attr("dy", "1.2em").text(words.slice(mid).join(" "));
+                } else {
+                    el.append("tspan").attr("x", 0).attr("dy", "0.3em").text(d.id);
+                }
+            });
+
+            allNodes.select("text").attr("transform", d => `translate(0, ${d.id === "PLAN MARCO" ? 0 : d.radius + 26})`);
+
+            allNodes.on("click", (event, d) => {
+                event.stopPropagation();
+                selectedNodeId = d.id;
+                if (document.getElementById("edit-node-name")) {
+                    document.getElementById("edit-node-name").value = d.id;
+                    document.getElementById("edit-node-select").value = d.id;
+                    loadNodeRadius();
+                    document.getElementById("link-source").value = d.id;
+                }
+                if (typeof panelVisible !== 'undefined' && !panelVisible && document.getElementById("control-panel")) togglePanel();
+                
+                const connectedNodes = new Set();
+                connectedNodes.add(d.id);
+                
+                allLinks.classed("faded", l => {
+                    const isConnected = l.source.id === d.id || l.target.id === d.id;
+                    if (isConnected) {
+                        connectedNodes.add(l.source.id);
+                        connectedNodes.add(l.target.id);
+                    }
+                    return !isConnected;
+                });
+                
+                allNodes.classed("faded", o => !connectedNodes.has(o.id));
+            });
+
+            svg.on("click", () => { selectedNodeId = null; allNodes.classed("faded", false); allLinks.classed("faded", false); });
+
+            simulation.nodes(nodesData); simulation.force("link").links(linksData);
+            simulation.force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], width/2, height/2).strength(1));
+            simulation.alpha(0.3).restart();
+
+            simulation.on("tick", () => {
+                allLinks.attr("d", d => {
+                    const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist === 0) return "";
+                    const tx = d.target.x - (dx * (d.target.radius + 14)) / dist, ty = d.target.y - (dy * (d.target.radius + 14)) / dist;
+                    const sx = d.source.x + (dx * ((d.bidi && showBidi) ? d.source.radius + 14 : d.source.radius)) / dist, sy = d.source.y + (dy * ((d.bidi && showBidi) ? d.source.radius + 14 : d.source.radius)) / dist;
+                    return `M${sx},${sy}A${dist*1.15},${dist*1.15} 0 0,1 ${tx},${ty}`;
+                });
+                allNodes.attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+            updateDropdowns();
+        }
+
+        function filterGraph(type, value) {
+            const allNodes = d3.selectAll("#nodes-layer .node");
+            const allLinks = d3.selectAll("#links-layer .link");
+            
+            const connectedNodes = new Set();
+            connectedNodes.add("PLAN MARCO"); // Siempre mantener PLAN MARCO
+
+            if (type === 'group') {
+                // Seleccionar nodos de la categoría seleccionada
+                nodesData.forEach(n => {
+                    if (n.group === value) connectedNodes.add(n.id);
+                });
+                // Vínculos visibles si conectan nodos visibles
+                allLinks.classed("faded", l => {
+                    const sId = typeof l.source === 'object' ? l.source.id : l.source;
+                    const tId = typeof l.target === 'object' ? l.target.id : l.target;
+                    // Mostrar vínculos solo entre los nodos filtrados y PLAN MARCO
+                    return !(connectedNodes.has(sId) && connectedNodes.has(tId));
+                });
+            } else if (type === 'link') {
+                // Seleccionar solo vínculos de este tipo
+                allLinks.classed("faded", l => {
+                    if (l.tipo === value) {
+                        const sId = typeof l.source === 'object' ? l.source.id : l.source;
+                        const tId = typeof l.target === 'object' ? l.target.id : l.target;
+                        connectedNodes.add(sId);
+                        connectedNodes.add(tId);
+                        return false; // No faded
+                    }
+                    return true; // Faded
+                });
+            }
+            
+            allNodes.classed("faded", o => !connectedNodes.has(o.id));
+        }
+
+        function drag(sim) {
+            return d3.drag().on("start", (e,d) => { 
+                    if(!e.active && !isStaticMode) sim.alphaTarget(0.3).restart(); 
+                    if(d.id!=="PLAN MARCO") { d.fx=d.x; d.fy=d.y; } 
+                })
+                .on("drag", (e,d) => { 
+                    if(d.id!=="PLAN MARCO") { d.fx=e.x; d.fy=e.y; } 
+                })
+                .on("end", (e,d) => { 
+                    if(!e.active) sim.alphaTarget(0); 
+                    if(d.id!=="PLAN MARCO") {
+                        const dist = Math.sqrt(Math.pow(d.x-width/2, 2) + Math.pow(d.y-height/2, 2));
+                        let bestR = d.anillo, minD = Infinity;
+                        for(let r in distAnillos) { let diff = Math.abs(dist - distAnillos[r]); if(diff < minD) { minD = diff; bestR = parseInt(r); } }
+                        d.anillo = bestR; 
+                        
+                        if(!isStaticMode) { d.fx = null; d.fy = null; }
+                        updateGraph();
+                    }
+                });
+        }
+
+        function updateDropdowns() {
+            const s1 = document.getElementById("link-source"), s2 = document.getElementById("link-target"), s3 = document.getElementById("edit-node-select");
+            if (!s1 || !s2 || !s3) return; // Si no existen (ej: en modo visualización web), salir.
+            const val3 = s3.value; s1.innerHTML = s2.innerHTML = s3.innerHTML = "";
+            nodesData.sort((a,b)=>a.id.localeCompare(b.id)).forEach(n => {
+                s1.add(new Option(n.id, n.id)); s2.add(new Option(n.id, n.id)); s3.add(new Option(n.id, n.id));
+            });
+            s2.value = "PLAN MARCO"; if(val3) s3.value = val3; else loadNodeRadius();
+        }
+
+        function loadNodeRadius() {
+            const el = document.getElementById("edit-node-select");
+            if(!el) return;
+            const n = nodesData.find(x => x.id === el.value);
+            if(n) { document.getElementById("edit-node-radius").value = n.radius; }
+        }
+
+        function liveUpdateRadius(v) {
+            const n = nodesData.find(x => x.id === document.getElementById("edit-node-select").value);
+            if(n) { 
+                n.radius = parseInt(v); 
+                simulation.force("collide", d3.forceCollide().radius(d => d.radius + 45)); 
+                simulation.alpha(0.1).restart(); 
+                layerNodes.selectAll(".node circle").attr("r", d => d.radius);
+                layerNodes.selectAll(".node text").attr("transform", d => `translate(0, ${d.id === "PLAN MARCO" ? 0 : d.radius + 26})`);
+            }
+        }
+
+        function renameNode() {
+            if(!selectedNodeId || selectedNodeId === "PLAN MARCO") return alert("Acción no permitida.");
+            const newName = document.getElementById("edit-node-name").value.trim();
+            if(!newName || nodesData.find(n => n.id === newName && n.id !== selectedNodeId)) return alert("Nombre inválido.");
+            const node = nodesData.find(n => n.id === selectedNodeId);
+            if(node) {
+                linksData.forEach(l => {
+                    if (l.source === selectedNodeId || l.source.id === selectedNodeId) l.source = newName;
+                    if (l.target === selectedNodeId || l.target.id === selectedNodeId) l.target = newName;
+                });
+                node.id = newName; selectedNodeId = newName; updateGraph();
+            }
+        }
+
+        function deleteNode() {
+            if(!selectedNodeId || selectedNodeId === "PLAN MARCO") return;
+            if(!confirm(`¿Eliminar actor '${selectedNodeId}' y sus vínculos?`)) return;
+            nodesData = nodesData.filter(n => n.id !== selectedNodeId);
+            linksData = linksData.filter(l => (l.source.id || l.source) !== selectedNodeId && (l.target.id || l.target) !== selectedNodeId);
+            selectedNodeId = null; updateGraph();
+        }
+
+        function addNode() {
+            const id = document.getElementById("node-id").value.trim();
+            if(!id || nodesData.find(n => n.id === id)) return alert("Error en nombre.");
+            nodesData.push({ id, group: document.getElementById("node-group").value, anillo: parseInt(document.getElementById("node-ring").value), radius: 20 });
+            document.getElementById("node-id").value = ""; updateGraph();
+        }
+
+        function addLink() {
+            const src = document.getElementById("link-source").value, tgt = document.getElementById("link-target").value;
+            if(src === tgt) return;
+            linksData = linksData.filter(l => !((l.source === src && l.target === tgt) || (l.source === tgt && l.target === src)));
+            linksData.push({ source: src, target: tgt, tipo: document.getElementById("link-type").value, bidi: document.getElementById("link-bidi").checked });
+            updateGraph();
+        }
+
+        window.addEventListener('resize', () => { width = window.innerWidth; height = window.innerHeight; svg.attr('width', width).attr('height', height); drawOrbits(); updateGraph(); });
+        loadFromLocal();
+        drawOrbits(); updateGraph();
+    </script>
+</body>
+</html>
