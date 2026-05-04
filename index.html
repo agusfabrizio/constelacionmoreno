@@ -115,7 +115,16 @@
         .link-presion { stroke: var(--color-presion); stroke-width: 3px; stroke-dasharray: 6, 6; }
         .link-regulacion { stroke: var(--color-regulacion); stroke-width: 2px; }
 
-        .global-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; }
+        .global-controls { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            display: flex; 
+            gap: 10px; 
+            z-index: 1000; 
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
         .icon-btn { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.08); }
         .icon-btn:hover { background: #eef2f7; }
 
@@ -192,6 +201,38 @@
 
         .faded { opacity: 0.1 !important; transition: opacity 0.3s ease; }
 
+        @media (max-width: 768px) {
+            .global-controls { top: 10px; right: 10px; gap: 5px; }
+            .icon-btn { padding: 6px 10px; font-size: 10px; }
+            #leyenda { 
+                width: 140px; 
+                bottom: 10px; 
+                left: 10px; 
+                max-height: 40vh; 
+                overflow-y: auto;
+                transition: transform 0.3s;
+            }
+            #leyenda.collapsed { transform: translateY(calc(100% + 20px)); }
+            #btn-toggle-leyenda { display: block !important; }
+            #control-panel { width: calc(100% - 40px); top: 60px; right: 20px; }
+        }
+
+        #btn-toggle-leyenda {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1001;
+            display: none;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 18px;
+        }
+
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             @page { size: A3 landscape; margin: 0; }
@@ -254,7 +295,7 @@
         <div class="global-controls">
             <button class="icon-btn" onclick="toggleMode()" id="btn-mode" style="display: none;">❄️ FIJAR MAPA</button>
             <button class="icon-btn" onclick="toggleListView()">📋 LISTA</button>
-            <button class="icon-btn" onclick="printPDF()">🖨️ EXPORTAR PDF A3</button>
+            <button class="icon-btn" onclick="printPDF()" id="btn-export-pdf" style="display: none;">🖨️ EXPORTAR PDF A3</button>
             <button class="icon-btn" onclick="togglePanel()" id="toggle-btn">⚙️ PANEL (ADMIN)</button>
         </div>
 
@@ -285,6 +326,7 @@
 
         <div id="sync-status">Conectando...</div>
 
+        <button id="btn-toggle-leyenda" onclick="toggleLeyenda()">ℹ️</button>
         <div id="leyenda">
             <div class="leyenda-seccion">
                 <h4>Actores (Jerarquía)</h4>
@@ -614,6 +656,7 @@
                 if (pass === "admin123") {
                     isAdmin = true;
                     document.getElementById("btn-mode").style.display = "inline-block";
+                    document.getElementById("btn-export-pdf").style.display = "inline-block";
                 } else {
                     if (pass !== null) alert("Contraseña incorrecta.");
                     return;
@@ -627,6 +670,11 @@
             if(leg) leg.classList.toggle("hidden", !panelVisible);
             const tb = document.getElementById("toggle-btn");
             if(tb) tb.innerText = panelVisible ? "⚙️ CERRAR PANEL" : "⚙️ PANEL (ADMIN)";
+        }
+
+        function toggleLeyenda() {
+            const leg = document.getElementById("leyenda");
+            if(leg) leg.classList.toggle("collapsed");
         }
 
         function toggleMode() {
@@ -727,24 +775,37 @@
 
         const distAnillos = { 1: 150, 2: 260, 3: 380, 4: 500 };
         const simulation = d3.forceSimulation()
-            .force("link", d3.forceLink().id(d => d.uid).strength(0.05))
-            .force("charge", d3.forceManyBody().strength(-2000))
-            .force("collide", d3.forceCollide().radius(d => (d.radius || 20) + 55).iterations(4));
+            .force("link", d3.forceLink().id(d => d.uid).strength(0.02))
+            .force("charge", d3.forceManyBody().strength(-2500))
+            .force("collide", d3.forceCollide().radius(d => (d.radius || 20) + 60).iterations(4));
 
         function drawOrbits(w, h) {
             layerOrbitas.selectAll("circle").data([1,2,3,4]).join("circle").attr("class", "orbita").attr("cx", w/2).attr("cy", h/2).attr("r", d => distAnillos[d]);
         }
 
         function updateGraph() {
-            const bbox = svg.node().getBoundingClientRect();
-            const w = bbox.width || window.innerWidth;
-            const h = bbox.height || window.innerHeight;
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            svg.attr("width", w).attr("height", h);
 
-            nodesData.forEach(d => { if (d.anillo === 0) { d.fx = w / 2; d.fy = h / 2; } });
+            nodesData.forEach(d => { 
+                // Sanitizar coordenadas: si están en 0 o NaN, poner al centro
+                if (isNaN(d.x) || d.x === 0) d.x = w / 2 + (Math.random() - 0.5) * 100;
+                if (isNaN(d.y) || d.y === 0) d.y = h / 2 + (Math.random() - 0.5) * 100;
+                
+                if (d.anillo === 0) { 
+                    d.fx = w / 2; d.fy = h / 2; 
+                } else if (!isStaticMode) {
+                    // Si no es modo estático, asegurar que no estén bloqueados fuera de la pantalla
+                    if (d.fx !== null && (d.fx < 0 || d.fx > w || d.fy < 0 || d.fy > h)) {
+                        d.fx = null; d.fy = null;
+                    }
+                }
+            });
             drawOrbits(w, h);
 
             simulation.force("center", d3.forceCenter(w / 2, h / 2))
-                      .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(1.5));
+                      .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(3.0));
             
             simulation.nodes(nodesData);
             simulation.force("link").links(linksData)
