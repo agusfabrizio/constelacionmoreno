@@ -276,6 +276,18 @@
             <div class="form-group">
                 <label>Nombre Actor</label>
                 <input type="text" id="edit-node-name" placeholder="Selecciona un nodo...">
+            </div>
+            <div class="form-group">
+                <label>Categoría / Grupo</label>
+                <select id="edit-node-group">
+                    <option value="estado-nacional">Estado (Nacional)</option>
+                    <option value="estado-provincial">Estado (Provincial)</option>
+                    <option value="estado-municipal">Estado (Municipal)</option>
+                    <option value="civil-territorial">Organización Territorial</option>
+                    <option value="civil-institucional">Institución Social</option>
+                    <option value="mercado-empresas">Mercado / Empresa</option>
+                    <option value="marco-legal-normas">Marco Legal / Norma</option>
+                </select>
                 <button onclick="renameNode()" style="background-color: #2980b9; margin-top: 10px;">Guardar Cambios</button>
             </div>
             <div class="form-group">
@@ -684,6 +696,7 @@
                 selectedNodeId = d.id;
                 if (document.getElementById("edit-node-name")) {
                     document.getElementById("edit-node-name").value = d.id;
+                    document.getElementById("edit-node-group").value = d.group;
                     document.getElementById("edit-node-select").value = d.id;
                     loadNodeRadius();
                     document.getElementById("link-source").value = d.id;
@@ -857,14 +870,23 @@
         function renameNode() {
             if(!selectedNodeId || selectedNodeId === "PLAN MARCO") return alert("Acción no permitida.");
             const newName = document.getElementById("edit-node-name").value.trim();
-            if(!newName || nodesData.find(n => n.id === newName && n.id !== selectedNodeId)) return alert("Nombre inválido.");
+            const newGroup = document.getElementById("edit-node-group").value;
+            
+            if(!newName) return alert("Nombre inválido.");
+            if(newName !== selectedNodeId && nodesData.find(n => n.id === newName)) return alert("Ese nombre ya existe.");
+
             const node = nodesData.find(n => n.id === selectedNodeId);
             if(node) {
-                linksData.forEach(l => {
-                    if (l.source === selectedNodeId || l.source.id === selectedNodeId) l.source = newName;
-                    if (l.target === selectedNodeId || l.target.id === selectedNodeId) l.target = newName;
-                });
-                node.id = newName; selectedNodeId = newName; updateGraph();
+                if(newName !== selectedNodeId) {
+                    linksData.forEach(l => {
+                        if (l.source === selectedNodeId || l.source.id === selectedNodeId) l.source = newName;
+                        if (l.target === selectedNodeId || l.target.id === selectedNodeId) l.target = newName;
+                    });
+                }
+                node.id = newName;
+                node.group = newGroup;
+                selectedNodeId = newName; 
+                updateGraph();
             }
         }
 
