@@ -661,16 +661,19 @@
         }
 
         const distAnillos = { 1: 170, 2: 300, 3: 430, 4: 580 };
-        const simulation = d3.forceSimulation().force("link", d3.forceLink().id(d => d.id).strength(0.02)).force("charge", d3.forceManyBody().strength(-1800)).force("collide", d3.forceCollide().radius(d => d.radius + 45).iterations(3));
+        const simulation = d3.forceSimulation().force("link", d3.forceLink().id(d => d.uid).strength(0.05)).force("charge", d3.forceManyBody().strength(-1800)).force("collide", d3.forceCollide().radius(d => (d.radius || 20) + 45).iterations(3));
 
-        function drawOrbits() {
-            layerOrbitas.selectAll("circle").data([1,2,3,4]).join("circle").attr("class", "orbita").attr("cx", width/2).attr("cy", height/2).attr("r", d => distAnillos[d]);
+        function drawOrbits(w, h) {
+            layerOrbitas.selectAll("circle").data([1,2,3,4]).join("circle").attr("class", "orbita").attr("cx", w/2).attr("cy", h/2).attr("r", d => distAnillos[d]);
         }
 
         function updateGraph() {
             const bbox = svg.node().getBoundingClientRect();
             const w = bbox.width || window.innerWidth;
             const h = bbox.height || window.innerHeight;
+
+            nodesData.forEach(d => { if (d.anillo === 0) { d.fx = w / 2; d.fy = h / 2; } });
+            drawOrbits(w, h);
 
             simulation.force("center", d3.forceCenter(w / 2, h / 2))
                       .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(0.8));
@@ -725,15 +728,17 @@
                 connectedNodes.add(d.id);
                 
                 allLinks.classed("faded", l => {
-                    const isConnected = l.source.id === d.id || l.target.id === d.id;
+                    const sid = l.source.uid || l.source;
+                    const tid = l.target.uid || l.target;
+                    const isConnected = sid === d.uid || tid === d.uid;
                     if (isConnected) {
-                        connectedNodes.add(l.source.id);
-                        connectedNodes.add(l.target.id);
+                        connectedNodes.add(sid);
+                        connectedNodes.add(tid);
                     }
                     return !isConnected;
                 });
                 
-                allNodes.classed("faded", o => !connectedNodes.has(o.id));
+                allNodes.classed("faded", o => !connectedNodes.has(o.uid));
             });
 
             svg.on("click", () => { selectedNodeId = null; allNodes.classed("faded", false); allLinks.classed("faded", false); updateLinksList(); });
