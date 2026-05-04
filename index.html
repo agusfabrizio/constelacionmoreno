@@ -262,7 +262,6 @@
 
         <svg id="network">
             <defs>
-                <!-- Definición de flechas con colores correspondientes -->
                 <marker id="arrow-jerarquica" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#9E9E9E"></path></marker>
                 <marker id="arrow-positiva" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#6B8E23"></path></marker>
                 <marker id="arrow-negativa" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,-5L10,0L0,5" fill="#FF7675"></path></marker>
@@ -302,7 +301,7 @@
             </div>
             
             <div class="leyenda-seccion">
-                <h4>V vínculos Relacionales</h4>
+                <h4>Vínculos Relacionales</h4>
                 <div class="leyenda-item" onclick="filterGraph('link', 'jerarquica')"><span class="leyenda-color bg-jer"></span>Dependencia jerárquica</div>
                 <div class="leyenda-item" onclick="filterGraph('link', 'positiva')"><span class="leyenda-color bg-pos"></span>Relación positiva</div>
                 <div class="leyenda-item" onclick="filterGraph('link', 'negativa')"><span class="leyenda-color bg-neg"></span>Relación negativa</div>
@@ -375,7 +374,7 @@
                     <option value="estado-municipal">Estado (Municipal)</option>
                     <option value="civil-territorial">Organización Territorial</option>
                     <option value="civil-institucional">Institución Social</option>
-                    <option value="mercado-empresas">Mercado / Empresa</option>
+                    <option value="mercado-empresas">Market / Empresa</option>
                     <option value="marco-legal-normas">Marco Legal / Norma</option>
                 </select>
             </div>
@@ -592,12 +591,6 @@
             ];
         }
 
-        let nodesData = [];
-        let linksData = [];
-
-        loadFromLocal();
-        if(nodesData.length === 0) loadDefaultData();
-
         const svg = d3.select("#network"), zoomContainer = d3.select("#zoom-container"), layerOrbitas = d3.select("#orbitas-layer"), layerLinks = d3.select("#links-layer"), layerNodes = d3.select("#nodes-layer");
         let width = window.innerWidth, height = window.innerHeight;
 
@@ -625,8 +618,6 @@
             const tb = document.getElementById("toggle-btn");
             if(tb) tb.innerText = panelVisible ? "⚙️ CERRAR" : "⚙️ PANEL";
         }
-
-        let showBidi = true;
 
         function toggleMode() {
             isStaticMode = !isStaticMode;
