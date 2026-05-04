@@ -726,7 +726,7 @@
             drawOrbits(w, h);
 
             simulation.force("center", d3.forceCenter(w / 2, h / 2))
-                      .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(0.8));
+                      .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(1.0));
             
             simulation.nodes(nodesData);
             simulation.force("link").links(linksData).distance(80).strength(0.5);
