@@ -674,7 +674,7 @@
             ndEnter.append("circle");
             ndEnter.append("text");
 
-            const allNodes = ndEnter.merge(nd);
+            const allNodes = ndEnter.merge(nd).attr("class", d => `node node-${d.group}`);
             allNodes.select("circle").attr("r", d => d.radius);
 
             allNodes.select("text").each(function(d) {
@@ -723,7 +723,7 @@
 
             simulation.nodes(nodesData); simulation.force("link").links(linksData);
             simulation.force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], width/2, height/2).strength(1));
-            simulation.alpha(0.3).restart();
+            simulation.alpha(0.5).restart();
 
             simulation.on("tick", () => {
                 allLinks.attr("d", d => {
