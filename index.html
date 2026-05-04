@@ -69,6 +69,7 @@
         .node-civil-territorial circle { fill: #999999; }
         .node-civil-institucional circle { fill: #bbbbbb; }
         .node-mercado-empresas circle { fill: #d1d1d1; } 
+        .node-proyectual-academico circle { fill: #6c5ce7; }
         .node-marco-legal-normas circle { fill: #e9e9e9; stroke: #ccc; }
 
         .node text {
@@ -257,6 +258,7 @@
                 <div class="leyenda-item" onclick="filterGraph('group', 'civil-territorial')"><span class="leyenda-color" style="background:#999999"></span>Organización Territorial</div>
                 <div class="leyenda-item" onclick="filterGraph('group', 'civil-institucional')"><span class="leyenda-color" style="background:#bbbbbb"></span>Institución Social</div>
                 <div class="leyenda-item" onclick="filterGraph('group', 'mercado-empresas')"><span class="leyenda-color" style="background:#d1d1d1"></span>Mercado / Empresas</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'proyectual-academico')"><span class="leyenda-color" style="background:#6c5ce7"></span>Proyectual / Académico</div>
                 <div class="leyenda-item" onclick="filterGraph('group', 'marco-legal-normas')"><span class="leyenda-color" style="background:#e9e9e9"></span>Marco Legal (Normas)</div>
             </div>
             
@@ -287,6 +289,7 @@
                     <option value="civil-territorial">Organización Territorial</option>
                     <option value="civil-institucional">Institución Social</option>
                     <option value="mercado-empresas">Mercado / Empresa</option>
+                    <option value="proyectual-academico">Proyectual / Académico</option>
                     <option value="marco-legal-normas">Marco Legal / Norma</option>
                 </select>
                 <button onclick="renameNode()" style="background-color: #2980b9; margin-top: 10px;">Guardar Cambios</button>
@@ -326,6 +329,7 @@
                     <option value="civil-territorial">Organización Territorial</option>
                     <option value="civil-institucional">Institución Social</option>
                     <option value="mercado-empresas">Mercado / Empresa</option>
+                    <option value="proyectual-academico">Proyectual / Académico</option>
                     <option value="marco-legal-normas">Marco Legal / Norma</option>
                 </select>
             </div>
@@ -409,77 +413,19 @@
 
         let nodesData = [
             { uid: "n0", id: "PLAN MARCO", group: "centro", anillo: 0, radius: 54 },
-            { uid: "n1", id: "INTENDENCIA", group: "estado-municipal", anillo: 1, radius: 35 },
-            { uid: "n2", id: "IDUAR", group: "estado-municipal", anillo: 1, radius: 25 },
-            { uid: "n3", id: "OBRAS PÚBLICAS", group: "estado-municipal", anillo: 1, radius: 25 },
-            { uid: "n4", id: "DEL. CUARTEL V", group: "estado-municipal", anillo: 2, radius: 20 },
-            { uid: "n5", id: "HCD", group: "estado-municipal", anillo: 1, radius: 30 },
-            { uid: "n6", id: "OPISU", group: "estado-provincial", anillo: 3, radius: 25 },
-            { uid: "n7", id: "COMIREC", group: "estado-provincial", anillo: 3, radius: 25 },
-            { uid: "n8", id: "MIN. INFRAESTRUCTURA", group: "estado-provincial", anillo: 4, radius: 25 },
-            { uid: "n9", id: "SISU", group: "estado-nacional", anillo: 3, radius: 25 },
-            { uid: "n10", id: "FISCALÍAS", group: "estado-provincial", anillo: 4, radius: 20 },
-            { uid: "n11", id: "JUZGADOS / DEF.", group: "estado-provincial", anillo: 4, radius: 20 },
-            { uid: "n12", id: "UNM", group: "civil-institucional", anillo: 3, radius: 20 },
-            { uid: "n13", id: "FADU", group: "civil-institucional", anillo: 4, radius: 20 },
-            { uid: "n14", id: "POLICÍA", group: "estado-provincial", anillo: 3, radius: 20 },
-            { uid: "n15", id: "LEY 8912", group: "marco-legal-normas", anillo: 3, radius: 25 },
-            { uid: "n16", id: "LEY HÁBITAT", group: "marco-legal-normas", anillo: 3, radius: 25 },
-            { uid: "n17", id: "CÓDIGO URBANO", group: "marco-legal-normas", anillo: 2, radius: 22 },
-            { uid: "n18", id: "MADRE TIERRA", group: "civil-institucional", anillo: 3, radius: 20 },
-            { uid: "n19", id: "TECHO", group: "civil-institucional", anillo: 3, radius: 20 },
-            { uid: "n20", id: "MOV. SOCIALES", group: "civil-territorial", anillo: 2, radius: 25 },
-            { uid: "n21", id: "COOPERATIVAS", group: "civil-territorial", anillo: 3, radius: 20 },
-            { uid: "n22", id: "SOC. FOMENTO", group: "civil-institucional", anillo: 3, radius: 18 },
-            { uid: "n23", id: "OCUPANTES", group: "civil-territorial", anillo: 2, radius: 25 },
-            { uid: "n24", id: "LOTEADORES INF.", group: "mercado-empresas", anillo: 4, radius: 20 },
-            { uid: "n25", id: "PUNTEROS", group: "mercado-empresas", anillo: 3, radius: 20 },
-            { uid: "n26", id: "INMOBILIARIAS", group: "mercado-empresas", anillo: 3, radius: 22 },
-            { uid: "n27", id: "PROFESIONALES", group: "mercado-empresas", anillo: 3, radius: 18 },
-            { uid: "n28", id: "SERVICIOS", group: "mercado-empresas", anillo: 3, radius: 20 },
-            { uid: "n29", id: "CORRALONES", group: "mercado-empresas", anillo: 3, radius: 20 },
-            { uid: "n30", id: "TALLER A77", group: "civil-institucional", anillo: 4, radius: 20 }
+            { uid: "n1", id: "ESTADO NACIONAL", group: "estado-nacional", anillo: 3, radius: 25 },
+            { uid: "n2", id: "MINISTERIO DE CAPITAL HUMANO", group: "estado-nacional", anillo: 3, radius: 25 },
+            { uid: "n3", id: "UBA (UNIV. DE BUENOS AIRES)", group: "proyectual-academico", anillo: 2, radius: 25 },
+            { uid: "n4", id: "UNM (UNIV. NAC. DE MORENO)", group: "proyectual-academico", anillo: 2, radius: 25 },
+            { uid: "n5", id: "FADU", group: "proyectual-academico", anillo: 1, radius: 30 }
         ];
 
         let linksData = [
-            { source: "INTENDENCIA", target: "IDUAR", tipo: "jerarquica", bidi: false },
-            { source: "INTENDENCIA", target: "OBRAS PÚBLICAS", tipo: "jerarquica", bidi: false },
-            { source: "OPISU", target: "INTENDENCIA", tipo: "financiacion", bidi: false },
-            { source: "COMIREC", target: "OBRAS PÚBLICAS", tipo: "financiacion", bidi: false },
-            { source: "SISU", target: "MOV. SOCIALES", tipo: "financiacion", bidi: false },
-            { source: "IDUAR", target: "OBRAS PÚBLICAS", tipo: "negativa", bidi: false },
-            { source: "OBRAS PÚBLICAS", target: "DEL. CUARTEL V", tipo: "jerarquica", bidi: false },
-            { source: "DEL. CUARTEL V", target: "OBRAS PÚBLICAS", tipo: "presion", bidi: false },
-            { source: "HCD", target: "IDUAR", tipo: "tecnica", bidi: false },
-            { source: "OCUPANTES", target: "DEL. CUARTEL V", tipo: "presion", bidi: false },
-            { source: "LOTEADORES INF.", target: "OCUPANTES", tipo: "tecnica", bidi: false },
-            { source: "LOTEADORES INF.", target: "IDUAR", tipo: "negativa", bidi: false },
-            { source: "PUNTEROS", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
-            { source: "POLICÍA", target: "OCUPANTES", tipo: "negativa", bidi: false },
-            { source: "POLICÍA", target: "LOTEADORES INF.", tipo: "negativa", bidi: false },
-            { source: "LEY HÁBITAT", target: "IDUAR", tipo: "regulacion", bidi: false },
-            { source: "LEY 8912", target: "PROFESIONALES", tipo: "regulacion", bidi: false },
-            { source: "MADRE TIERRA", target: "IDUAR", tipo: "positiva", bidi: false },
-            { source: "TECHO", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
-            { source: "UNM", target: "IDUAR", tipo: "tecnica", bidi: false },
-            { source: "UNM", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
-            { source: "UNM", target: "COOPERATIVAS", tipo: "tecnica", bidi: false },
-            { source: "UNM", target: "OCUPANTES", tipo: "tecnica", bidi: false },
-            { source: "TALLER A77", target: "IDUAR", tipo: "tecnica", bidi: false },
-            { source: "TALLER A77", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
-            { source: "TALLER A77", target: "COOPERATIVAS", tipo: "tecnica", bidi: false },
-            { source: "TALLER A77", target: "OCUPANTES", tipo: "tecnica", bidi: false },
-            { source: "FADU", target: "TALLER A77", tipo: "jerarquica", bidi: false },
-            { source: "CORRALONES", target: "OCUPANTES", tipo: "positiva", bidi: false },
-            { source: "SERVICIOS", target: "OCUPANTES", tipo: "negativa", bidi: false },
-            { source: "PROFESIONALES", target: "IDUAR", tipo: "tecnica", bidi: false },
-            { source: "DEL. CUARTEL V", target: "INTENDENCIA", tipo: "presion", bidi: false },
-            { source: "IDUAR", target: "HCD", tipo: "presion", bidi: false },
-            { source: "TECHO", target: "OCUPANTES", tipo: "positiva", bidi: false },
-            { source: "INTENDENCIA", target: "POLICÍA", tipo: "jerarquica", bidi: false },
-            { source: "MOV. SOCIALES", target: "OCUPANTES", tipo: "positiva", bidi: false },
-            { source: "OBRAS PÚBLICAS", target: "LEY 8912", tipo: "regulacion", bidi: false },
-            { source: "HCD", target: "CÓDIGO URBANO", tipo: "regulacion", bidi: false }
+            { source: "n1", target: "n2", tipo: "jerarquica", bidi: false },
+            { source: "n2", target: "n3", tipo: "financiacion", bidi: false },
+            { source: "n2", target: "n4", tipo: "financiacion", bidi: false },
+            { source: "n3", target: "n5", tipo: "jerarquica", bidi: true },
+            { source: "n4", target: "n0", tipo: "tecnica", bidi: false }
         ];
 
         const svg = d3.select("#network"), zoomContainer = d3.select("#zoom-container"), layerOrbitas = d3.select("#orbitas-layer"), layerLinks = d3.select("#links-layer"), layerNodes = d3.select("#nodes-layer");
@@ -592,6 +538,7 @@
             "civil-territorial": "Organización Territorial",
             "civil-institucional": "Institución Social",
             "mercado-empresas": "Mercado / Empresas",
+            "proyectual-academico": "Proyectual / Académico",
             "marco-legal-normas": "Marco Legal (Normas)"
         };
 
