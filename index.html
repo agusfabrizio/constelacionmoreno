@@ -199,6 +199,14 @@
         .list-relations { font-size: 12px; color: #666; }
         .relation-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; margin: 2px; font-size: 10px; color: white; }
         .close-list { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        /* LINK LIST STYLES */
+        .link-list { margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+        .link-list label { margin-bottom: 8px; color: var(--text-main); }
+        .link-list-item { display: flex; justify-content: space-between; align-items: center; font-size: 10px; margin-bottom: 6px; background: #fff; padding: 6px 10px; border-radius: 6px; border: 1px solid #eee; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .link-list-item b { text-transform: uppercase; font-size: 8px; color: #7f8c8d; margin-right: 5px; }
+        .btn-cut { background: var(--danger); color: white; border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 9px; font-weight: bold; transition: filter 0.2s; }
+        .btn-cut:hover { filter: brightness(1.2); }
     </style>
 </head>
 <body>
@@ -287,6 +295,11 @@
                 </select>
             </div>
             <button onclick="deleteNode()" class="btn-danger">🗑️ ELIMINAR ACTOR</button>
+
+            <div id="selected-node-links" class="link-list">
+                <label>Vínculos del Actor</label>
+                <div id="links-container"></div>
+            </div>
 
             <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
 
@@ -674,6 +687,7 @@
                     document.getElementById("edit-node-select").value = d.id;
                     loadNodeRadius();
                     document.getElementById("link-source").value = d.id;
+                    updateLinksList();
                 }
                 if (typeof panelVisible !== 'undefined' && !panelVisible && document.getElementById("control-panel")) togglePanel();
                 
@@ -692,7 +706,7 @@
                 allNodes.classed("faded", o => !connectedNodes.has(o.id));
             });
 
-            svg.on("click", () => { selectedNodeId = null; allNodes.classed("faded", false); allLinks.classed("faded", false); });
+            svg.on("click", () => { selectedNodeId = null; allNodes.classed("faded", false); allLinks.classed("faded", false); updateLinksList(); });
 
             simulation.nodes(nodesData); simulation.force("link").links(linksData);
             simulation.force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], width/2, height/2).strength(1));
@@ -709,6 +723,49 @@
                 allNodes.attr("transform", d => `translate(${d.x},${d.y})`);
             });
             updateDropdowns();
+            updateLinksList();
+        }
+
+        function updateLinksList() {
+            const container = document.getElementById("links-container");
+            if (!container) return;
+            container.innerHTML = "";
+            if (!selectedNodeId) {
+                container.innerHTML = "<div style='font-size:10px; color:#999; text-align:center; padding:10px;'>Selecciona un actor para ver sus vínculos</div>";
+                return;
+            }
+
+            const nodeLinks = linksData.filter(l => 
+                (l.source.id || l.source) === selectedNodeId || 
+                (l.target.id || l.target) === selectedNodeId
+            );
+
+            if (nodeLinks.length === 0) {
+                container.innerHTML = "<div style='font-size:10px; color:#999; text-align:center; padding:10px;'>Sin vínculos activos</div>";
+                return;
+            }
+
+            nodeLinks.forEach(l => {
+                const sId = l.source.id || l.source;
+                const tId = l.target.id || l.target;
+                const otherId = sId === selectedNodeId ? tId : sId;
+                const item = document.createElement("div");
+                item.className = "link-list-item";
+                item.innerHTML = `
+                    <span><b>${l.tipo}:</b> ${otherId}</span>
+                    <button class="btn-cut" onclick="removeLink('${sId}', '${tId}')">Cortar</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function removeLink(src, tgt) {
+            linksData = linksData.filter(l => {
+                const s = l.source.id || l.source;
+                const t = l.target.id || l.target;
+                return !(s === src && t === tgt);
+            });
+            updateGraph();
         }
 
         function filterGraph(type, value) {
