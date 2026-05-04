@@ -413,15 +413,81 @@
             { uid: "n2", id: "MINISTERIO DE CAPITAL HUMANO", group: "estado-nacional", anillo: 3, radius: 25 },
             { uid: "n3", id: "UBA (UNIV. DE BUENOS AIRES)", group: "civil-institucional", anillo: 2, radius: 25 },
             { uid: "n4", id: "UNM (UNIV. NAC. DE MORENO)", group: "civil-institucional", anillo: 2, radius: 25 },
-            { uid: "n5", id: "FADU", group: "civil-institucional", anillo: 1, radius: 30 }
+            { uid: "n5", id: "FADU", group: "civil-institucional", anillo: 1, radius: 30 },
+            { uid: "n6", id: "IDUAR", group: "estado-municipal", anillo: 1, radius: 25 },
+            { uid: "n7", id: "COOPERATIVAS", group: "civil-territorial", anillo: 3, radius: 20 },
+            { uid: "n8", id: "VECINOS", group: "civil-territorial", anillo: 2, radius: 25 },
+            { uid: "n9", id: "DEL. CUARTEL V", group: "estado-municipal", anillo: 2, radius: 20 },
+            { uid: "n10", id: "TALLER A77", group: "civil-institucional", anillo: 4, radius: 20 },
+            { uid: "n11", id: "INTENDENCIA", group: "estado-municipal", anillo: 1, radius: 35 },
+            { uid: "n12", id: "OBRAS PÚBLICAS", group: "estado-municipal", anillo: 1, radius: 25 },
+            { uid: "n13", id: "HCD", group: "estado-municipal", anillo: 1, radius: 30 },
+            { uid: "n14", id: "OPISU", group: "estado-provincial", anillo: 3, radius: 25 },
+            { uid: "n15", id: "COMIREC", group: "estado-provincial", anillo: 3, radius: 25 },
+            { uid: "n16", id: "MIN. INFRAESTRUCTURA", group: "estado-provincial", anillo: 4, radius: 25 },
+            { uid: "n17", id: "SISU", group: "estado-nacional", anillo: 3, radius: 25 },
+            { uid: "n18", id: "FISCALÍAS", group: "estado-provincial", anillo: 4, radius: 20 },
+            { uid: "n19", id: "JUZGADOS / DEF.", group: "estado-provincial", anillo: 4, radius: 20 },
+            { uid: "n20", id: "POLICÍA", group: "estado-provincial", anillo: 3, radius: 20 },
+            { uid: "n21", id: "LEY 8912", group: "marco-legal-normas", anillo: 3, radius: 25 },
+            { uid: "n22", id: "LEY HÁBITAT", group: "marco-legal-normas", anillo: 3, radius: 25 },
+            { uid: "n23", id: "CÓDIGO URBANO", group: "marco-legal-normas", anillo: 2, radius: 22 },
+            { uid: "n24", id: "MADRE TIERRA", group: "civil-institucional", anillo: 3, radius: 20 },
+            { uid: "n25", id: "TECHO", group: "civil-institucional", anillo: 3, radius: 20 },
+            { uid: "n26", id: "MOV. SOCIALES", group: "civil-territorial", anillo: 2, radius: 25 },
+            { uid: "n27", id: "SOC. FOMENTO", group: "civil-institucional", anillo: 3, radius: 18 },
+            { uid: "n28", id: "LOTEADORES INF.", group: "mercado-empresas", anillo: 4, radius: 20 },
+            { uid: "n29", id: "PUNTEROS", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { uid: "n30", id: "INMOBILIARIAS", group: "mercado-empresas", anillo: 3, radius: 22 },
+            { uid: "n31", id: "PROFESIONALES", group: "mercado-empresas", anillo: 3, radius: 18 },
+            { uid: "n32", id: "SERVICIOS", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { uid: "n33", id: "CORRALONES", group: "mercado-empresas", anillo: 3, radius: 20 }
         ];
 
         let linksData = [
-            { source: "n1", target: "n2", tipo: "jerarquica", bidi: false },
-            { source: "n2", target: "n3", tipo: "financiacion", bidi: false },
-            { source: "n2", target: "n4", tipo: "financiacion", bidi: false },
-            { source: "n3", target: "n5", tipo: "jerarquica", bidi: true },
-            { source: "n4", target: "n0", tipo: "tecnica", bidi: false }
+            // Nuevos vínculos de Batch
+            { source: "n1", target: "n2", tipo: "jerarquica", bidi: false }, // ESTADO -> CAPITAL HUMANO
+            { source: "n2", target: "n3", tipo: "financiacion", bidi: false }, // CAPITAL HUMANO -> UBA
+            { source: "n2", target: "n4", tipo: "financiacion", bidi: false }, // CAPITAL HUMANO -> UNM
+            { source: "n3", target: "n5", tipo: "jerarquica", bidi: true }, // UBA <-> FADU
+            { source: "n4", target: "n0", tipo: "tecnica", bidi: false }, // UNM -> PLAN MARCO
+            { source: "n5", target: "n10", tipo: "jerarquica", bidi: false }, // FADU -> TALLER A77
+
+            // TRANSFERENCIA (Según Imagen)
+            { source: "n10", target: "n8", tipo: "tecnica", bidi: false }, // TALLER A77 -> VECINOS
+            { source: "n10", target: "n7", tipo: "tecnica", bidi: false }, // TALLER A77 -> COOPERATIVAS
+            { source: "n10", target: "n6", tipo: "tecnica", bidi: false }, // TALLER A77 -> IDUAR
+            { source: "n10", target: "n9", tipo: "tecnica", bidi: false }, // TALLER A77 -> DEL. CUARTEL V
+
+            // Mapa Base Restaurado
+            { source: "n11", target: "n6", tipo: "jerarquica", bidi: false }, // INTENDENCIA -> IDUAR
+            { source: "n11", target: "n12", tipo: "jerarquica", bidi: false },
+            { source: "n14", target: "n11", tipo: "financiacion", bidi: false },
+            { source: "n15", target: "n12", tipo: "financiacion", bidi: false },
+            { source: "n17", target: "n26", tipo: "financiacion", bidi: false },
+            { source: "n6", target: "n12", tipo: "negativa", bidi: false },
+            { source: "n12", target: "n9", tipo: "jerarquica", bidi: false },
+            { source: "n9", target: "n12", tipo: "presion", bidi: false },
+            { source: "n13", target: "n6", tipo: "tecnica", bidi: false },
+            { source: "n8", target: "n9", tipo: "presion", bidi: false },
+            { source: "n28", target: "n8", tipo: "tecnica", bidi: false },
+            { source: "n28", target: "n6", tipo: "negativa", bidi: false },
+            { source: "n29", target: "n9", tipo: "tecnica", bidi: false },
+            { source: "n20", target: "n8", tipo: "negativa", bidi: false },
+            { source: "n22", target: "n6", tipo: "regulacion", bidi: false },
+            { source: "n24", target: "n6", tipo: "positiva", bidi: false },
+            { source: "n25", target: "n9", tipo: "tecnica", bidi: false },
+            { source: "n4", target: "n6", tipo: "tecnica", bidi: false },
+            { source: "n33", target: "n8", tipo: "positiva", bidi: false },
+            { source: "n32", target: "n8", tipo: "negativa", bidi: false },
+            { source: "n31", target: "n6", tipo: "tecnica", bidi: false },
+            { source: "n9", target: "n11", tipo: "presion", bidi: false },
+            { source: "n6", target: "n13", tipo: "presion", bidi: false },
+            { source: "n25", target: "n8", tipo: "positiva", bidi: false },
+            { source: "n11", target: "n20", tipo: "jerarquica", bidi: false },
+            { source: "n26", target: "n8", tipo: "positiva", bidi: false },
+            { source: "n12", target: "n21", tipo: "regulacion", bidi: false },
+            { source: "n13", target: "n23", tipo: "regulacion", bidi: false }
         ];
 
         const svg = d3.select("#network"), zoomContainer = d3.select("#zoom-container"), layerOrbitas = d3.select("#orbitas-layer"), layerLinks = d3.select("#links-layer"), layerNodes = d3.select("#nodes-layer");
