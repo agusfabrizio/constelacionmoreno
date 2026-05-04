@@ -436,7 +436,8 @@
             { id: "INMOBILIARIAS", group: "mercado-empresas", anillo: 3, radius: 22 },
             { id: "PROFESIONALES", group: "mercado-empresas", anillo: 3, radius: 18 },
             { id: "SERVICIOS", group: "mercado-empresas", anillo: 3, radius: 20 },
-            { id: "CORRALONES", group: "mercado-empresas", anillo: 3, radius: 20 }
+            { id: "CORRALONES", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { id: "TALLER A77", group: "civil-institucional", anillo: 4, radius: 20 }
         ];
 
         let linksData = [
@@ -463,10 +464,11 @@
             { source: "UNM", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
             { source: "UNM", target: "COOPERATIVAS", tipo: "tecnica", bidi: false },
             { source: "UNM", target: "OCUPANTES", tipo: "tecnica", bidi: false },
-            { source: "FADU", target: "IDUAR", tipo: "tecnica", bidi: false },
-            { source: "FADU", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
-            { source: "FADU", target: "COOPERATIVAS", tipo: "tecnica", bidi: false },
-            { source: "FADU", target: "OCUPANTES", tipo: "tecnica", bidi: false },
+            { source: "TALLER A77", target: "IDUAR", tipo: "tecnica", bidi: false },
+            { source: "TALLER A77", target: "DEL. CUARTEL V", tipo: "tecnica", bidi: false },
+            { source: "TALLER A77", target: "COOPERATIVAS", tipo: "tecnica", bidi: false },
+            { source: "TALLER A77", target: "OCUPANTES", tipo: "tecnica", bidi: false },
+            { source: "FADU", target: "TALLER A77", tipo: "jerarquica", bidi: false },
             { source: "CORRALONES", target: "OCUPANTES", tipo: "positiva", bidi: false },
             { source: "SERVICIOS", target: "OCUPANTES", tipo: "negativa", bidi: false },
             { source: "PROFESIONALES", target: "IDUAR", tipo: "tecnica", bidi: false },
