@@ -653,7 +653,7 @@
         function togglePanel() {
             if (!isAdmin) {
                 const pass = prompt("Ingrese contraseña de administrador para editar:");
-                if (pass === "admin123") {
+                if (pass === "nicoagusnico") {
                     isAdmin = true;
                     document.getElementById("btn-mode").style.display = "inline-block";
                     document.getElementById("btn-export-pdf").style.display = "inline-block";
@@ -796,10 +796,8 @@
                 if (d.anillo === 0) { 
                     d.fx = w / 2; d.fy = h / 2; 
                 } else if (!isStaticMode) {
-                    // Si no es modo estático, asegurar que no estén bloqueados fuera de la pantalla
-                    if (d.fx !== null && (d.fx < 0 || d.fx > w || d.fy < 0 || d.fy > h)) {
-                        d.fx = null; d.fy = null;
-                    }
+                    // Si no es modo estático, nos aseguramos de que no tengan posiciones fijas bloqueadas
+                    d.fx = null; d.fy = null;
                 }
             });
             drawOrbits(w, h);
@@ -862,7 +860,7 @@
                     document.getElementById("link-source").value = d.id;
                     updateLinksList();
                 }
-                if (typeof panelVisible !== 'undefined' && !panelVisible && document.getElementById("control-panel")) togglePanel();
+
                 
                 const connectedNodes = new Set();
                 connectedNodes.add(d.id);
