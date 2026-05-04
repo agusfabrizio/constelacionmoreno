@@ -707,6 +707,7 @@
             if(node) {
                 node.anillo = parseInt(ring);
                 updateGraph();
+                saveToLocal();
             }
         }
 
@@ -857,6 +858,7 @@
                 return !(s === src && t === tgt);
             });
             updateGraph();
+            saveToLocal();
         }
 
         function filterGraph(type, value) {
@@ -913,6 +915,7 @@
                         
                         if(!isStaticMode) { d.fx = null; d.fy = null; }
                         updateGraph();
+                        saveToLocal();
                     }
                 });
         }
@@ -942,6 +945,7 @@
                 simulation.alpha(0.1).restart(); 
                 layerNodes.selectAll(".node circle").attr("r", d => d.radius);
                 layerNodes.selectAll(".node text").attr("transform", d => `translate(0, ${d.id === "PLAN MARCO" ? 0 : d.radius + 26})`);
+                saveToLocal();
             }
         }
 
@@ -960,6 +964,7 @@
                 node.group = newGroup;
                 selectedNodeId = newName; 
                 updateGraph();
+                saveToLocal();
             }
         }
 
@@ -972,6 +977,7 @@
             nodesData = nodesData.filter(n => n.uid !== uid);
             linksData = linksData.filter(l => (l.source.uid || l.source) !== uid && (l.target.uid || l.target) !== uid);
             selectedNodeId = null; updateGraph();
+            saveToLocal();
         }
 
         function addNode() {
@@ -979,6 +985,7 @@
             if(!id || nodesData.find(n => n.id === id)) return alert("Error en nombre.");
             nodesData.push({ uid: "n" + Date.now(), id, group: document.getElementById("node-group").value, anillo: parseInt(document.getElementById("node-ring").value), radius: 20 });
             document.getElementById("node-id").value = ""; updateGraph();
+            saveToLocal();
         }
 
         function addLink() {
@@ -996,6 +1003,7 @@
             linksData = linksData.filter(l => !(((l.source.uid || l.source) === src && (l.target.uid || l.target) === tgt) || ((l.source.uid || l.source) === tgt && (l.target.uid || l.target) === src)));
             linksData.push({ source: src, target: tgt, tipo: document.getElementById("link-type").value, bidi: document.getElementById("link-bidi").checked });
             updateGraph();
+            saveToLocal();
         }
 
         function resetData() {
