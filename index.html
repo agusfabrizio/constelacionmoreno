@@ -487,6 +487,11 @@
             } catch(e) { console.warn("Fallo carga nube, usando local", e); }
 
             // Fallback Local
+            const sn = localStorage.getItem('constelacion_nodes');
+            const sl = localStorage.getItem('constelacion_links');
+            if(sn && sn !== "null") nodesData = JSON.parse(sn);
+            if(sl && sl !== "null") linksData = JSON.parse(sl);
+
             if(nodesData.length === 0) loadDefaultData();
             updateGraph();
             document.getElementById("sync-status").innerText = "Local (Sin Nube)";
