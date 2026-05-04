@@ -374,12 +374,12 @@
 
         function saveToLocal() {
             localStorage.setItem('constelacion_nodes', JSON.stringify(nodesData.map(n => ({ 
-                id: n.id, group: n.group, anillo: n.anillo, radius: n.radius,
+                uid: n.uid || n.id, id: n.id, group: n.group, anillo: n.anillo, radius: n.radius,
                 x: n.x, y: n.y, fx: n.fx, fy: n.fy
             }))));
             localStorage.setItem('constelacion_links', JSON.stringify(linksData.map(l => ({ 
-                source: l.source.id || l.source, 
-                target: l.target.id || l.target, 
+                source: l.source.uid || l.source.id || l.source, 
+                target: l.target.uid || l.target.id || l.target, 
                 tipo: l.tipo, 
                 bidi: l.bidi 
             }))));
@@ -391,9 +391,9 @@
             const sl = localStorage.getItem('constelacion_links');
             const sm = localStorage.getItem('constelacion_mode');
             
-            // Si hay datos guardados, sobrescribimos los arreglos por completo para respetar eliminaciones
             if(sn) {
                 nodesData = JSON.parse(sn);
+                nodesData.forEach(n => { if(!n.uid) n.uid = n.id; });
             }
             if(sl) {
                 linksData = JSON.parse(sl);
@@ -408,37 +408,37 @@
         }
 
         let nodesData = [
-            { id: "PLAN MARCO", group: "centro", anillo: 0, radius: 54 },
-            { id: "INTENDENCIA", group: "estado-municipal", anillo: 1, radius: 35 },
-            { id: "IDUAR", group: "estado-municipal", anillo: 1, radius: 25 },
-            { id: "OBRAS PÚBLICAS", group: "estado-municipal", anillo: 1, radius: 25 },
-            { id: "DEL. CUARTEL V", group: "estado-municipal", anillo: 2, radius: 20 },
-            { id: "HCD", group: "estado-municipal", anillo: 1, radius: 30 },
-            { id: "OPISU", group: "estado-provincial", anillo: 3, radius: 25 },
-            { id: "COMIREC", group: "estado-provincial", anillo: 3, radius: 25 },
-            { id: "MIN. INFRAESTRUCTURA", group: "estado-provincial", anillo: 4, radius: 25 },
-            { id: "SISU", group: "estado-nacional", anillo: 3, radius: 25 },
-            { id: "FISCALÍAS", group: "estado-provincial", anillo: 4, radius: 20 },
-            { id: "JUZGADOS / DEF.", group: "estado-provincial", anillo: 4, radius: 20 },
-            { id: "UNM", group: "civil-institucional", anillo: 3, radius: 20 },
-            { id: "FADU", group: "civil-institucional", anillo: 4, radius: 20 },
-            { id: "POLICÍA", group: "estado-provincial", anillo: 3, radius: 20 },
-            { id: "LEY 8912", group: "marco-legal-normas", anillo: 3, radius: 25 },
-            { id: "LEY HÁBITAT", group: "marco-legal-normas", anillo: 3, radius: 25 },
-            { id: "CÓDIGO URBANO", group: "marco-legal-normas", anillo: 2, radius: 22 },
-            { id: "MADRE TIERRA", group: "civil-institucional", anillo: 3, radius: 20 },
-            { id: "TECHO", group: "civil-institucional", anillo: 3, radius: 20 },
-            { id: "MOV. SOCIALES", group: "civil-territorial", anillo: 2, radius: 25 },
-            { id: "COOPERATIVAS", group: "civil-territorial", anillo: 3, radius: 20 },
-            { id: "SOC. FOMENTO", group: "civil-institucional", anillo: 3, radius: 18 },
-            { id: "OCUPANTES", group: "civil-territorial", anillo: 2, radius: 25 },
-            { id: "LOTEADORES INF.", group: "mercado-empresas", anillo: 4, radius: 20 },
-            { id: "PUNTEROS", group: "mercado-empresas", anillo: 3, radius: 20 },
-            { id: "INMOBILIARIAS", group: "mercado-empresas", anillo: 3, radius: 22 },
-            { id: "PROFESIONALES", group: "mercado-empresas", anillo: 3, radius: 18 },
-            { id: "SERVICIOS", group: "mercado-empresas", anillo: 3, radius: 20 },
-            { id: "CORRALONES", group: "mercado-empresas", anillo: 3, radius: 20 },
-            { id: "TALLER A77", group: "civil-institucional", anillo: 4, radius: 20 }
+            { uid: "n0", id: "PLAN MARCO", group: "centro", anillo: 0, radius: 54 },
+            { uid: "n1", id: "INTENDENCIA", group: "estado-municipal", anillo: 1, radius: 35 },
+            { uid: "n2", id: "IDUAR", group: "estado-municipal", anillo: 1, radius: 25 },
+            { uid: "n3", id: "OBRAS PÚBLICAS", group: "estado-municipal", anillo: 1, radius: 25 },
+            { uid: "n4", id: "DEL. CUARTEL V", group: "estado-municipal", anillo: 2, radius: 20 },
+            { uid: "n5", id: "HCD", group: "estado-municipal", anillo: 1, radius: 30 },
+            { uid: "n6", id: "OPISU", group: "estado-provincial", anillo: 3, radius: 25 },
+            { uid: "n7", id: "COMIREC", group: "estado-provincial", anillo: 3, radius: 25 },
+            { uid: "n8", id: "MIN. INFRAESTRUCTURA", group: "estado-provincial", anillo: 4, radius: 25 },
+            { uid: "n9", id: "SISU", group: "estado-nacional", anillo: 3, radius: 25 },
+            { uid: "n10", id: "FISCALÍAS", group: "estado-provincial", anillo: 4, radius: 20 },
+            { uid: "n11", id: "JUZGADOS / DEF.", group: "estado-provincial", anillo: 4, radius: 20 },
+            { uid: "n12", id: "UNM", group: "civil-institucional", anillo: 3, radius: 20 },
+            { uid: "n13", id: "FADU", group: "civil-institucional", anillo: 4, radius: 20 },
+            { uid: "n14", id: "POLICÍA", group: "estado-provincial", anillo: 3, radius: 20 },
+            { uid: "n15", id: "LEY 8912", group: "marco-legal-normas", anillo: 3, radius: 25 },
+            { uid: "n16", id: "LEY HÁBITAT", group: "marco-legal-normas", anillo: 3, radius: 25 },
+            { uid: "n17", id: "CÓDIGO URBANO", group: "marco-legal-normas", anillo: 2, radius: 22 },
+            { uid: "n18", id: "MADRE TIERRA", group: "civil-institucional", anillo: 3, radius: 20 },
+            { uid: "n19", id: "TECHO", group: "civil-institucional", anillo: 3, radius: 20 },
+            { uid: "n20", id: "MOV. SOCIALES", group: "civil-territorial", anillo: 2, radius: 25 },
+            { uid: "n21", id: "COOPERATIVAS", group: "civil-territorial", anillo: 3, radius: 20 },
+            { uid: "n22", id: "SOC. FOMENTO", group: "civil-institucional", anillo: 3, radius: 18 },
+            { uid: "n23", id: "OCUPANTES", group: "civil-territorial", anillo: 2, radius: 25 },
+            { uid: "n24", id: "LOTEADORES INF.", group: "mercado-empresas", anillo: 4, radius: 20 },
+            { uid: "n25", id: "PUNTEROS", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { uid: "n26", id: "INMOBILIARIAS", group: "mercado-empresas", anillo: 3, radius: 22 },
+            { uid: "n27", id: "PROFESIONALES", group: "mercado-empresas", anillo: 3, radius: 18 },
+            { uid: "n28", id: "SERVICIOS", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { uid: "n29", id: "CORRALONES", group: "mercado-empresas", anillo: 3, radius: 20 },
+            { uid: "n30", id: "TALLER A77", group: "civil-institucional", anillo: 4, radius: 20 }
         ];
 
         let linksData = [
@@ -670,7 +670,7 @@
                 .attr("marker-end", d => `url(#arrow-${d.tipo})`)
                 .attr("marker-start", d => (d.bidi && showBidi) ? `url(#arrow-${d.tipo}-rev)` : null);
 
-            const nd = layerNodes.selectAll("g").data(nodesData, d => d.id);
+            const nd = layerNodes.selectAll("g").data(nodesData, d => d.uid);
             nd.exit().remove();
             const ndEnter = nd.enter().append("g").attr("class", d => `node node-${d.group}`).call(drag(simulation));
             
@@ -904,7 +904,7 @@
         function addNode() {
             const id = document.getElementById("node-id").value.trim();
             if(!id || nodesData.find(n => n.id === id)) return alert("Error en nombre.");
-            nodesData.push({ id, group: document.getElementById("node-group").value, anillo: parseInt(document.getElementById("node-ring").value), radius: 20 });
+            nodesData.push({ uid: "n" + Date.now(), id, group: document.getElementById("node-group").value, anillo: parseInt(document.getElementById("node-ring").value), radius: 20 });
             document.getElementById("node-id").value = ""; updateGraph();
         }
 
