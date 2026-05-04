@@ -668,10 +668,16 @@
         }
 
         function updateGraph() {
-            saveToLocal();
-            nodesData.forEach(d => { if (d.id === "PLAN MARCO") { d.fx = width/2; d.fy = height/2; } });
+            const bbox = svg.node().getBoundingClientRect();
+            const w = bbox.width || window.innerWidth;
+            const h = bbox.height || window.innerHeight;
+
+            simulation.force("center", d3.forceCenter(w / 2, h / 2))
+                      .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(0.8));
             
-            const lk = layerLinks.selectAll("path").data(linksData, d => `${d.source?.id || d.source}-${d.target?.id || d.target}`);
+            simulation.force("link").links(linksData).distance(80).strength(0.5);
+            
+            const lk = layerLinks.selectAll(".link").data(linksData, d => `${d.source?.id || d.source}-${d.target?.id || d.target}`);
             lk.exit().remove();
             const lkEnter = lk.enter().append("path").attr("class", d => `link link-${d.tipo}`);
             const allLinks = lkEnter.merge(lk).attr("class", d => `link link-${d.tipo}`)
@@ -732,8 +738,7 @@
 
             svg.on("click", () => { selectedNodeId = null; allNodes.classed("faded", false); allLinks.classed("faded", false); updateLinksList(); });
 
-            simulation.nodes(nodesData); simulation.force("link").links(linksData);
-            simulation.force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], width/2, height/2).strength(1));
+            simulation.nodes(nodesData);
             simulation.alpha(0.5).restart();
 
             simulation.on("tick", () => {
@@ -925,7 +930,7 @@
         }
 
         function resetData() {
-            if(confirm("¿Estás seguro de que quieres resetear todos los datos? Se perderán tus cambios locales y se volverá a la versión del código.")) {
+            if(confirm("¿Estás seguro de que deseas resetear todos los datos y posiciones? Se perderán los cambios manuales.")) {
                 localStorage.clear();
                 location.reload();
             }
