@@ -69,7 +69,6 @@
         .node-civil-territorial circle { fill: #999999; }
         .node-civil-institucional circle { fill: #bbbbbb; }
         .node-mercado-empresas circle { fill: #d1d1d1; } 
-        .node-proyectual-academico circle { fill: #6c5ce7; }
         .node-marco-legal-normas circle { fill: #e9e9e9; stroke: #ccc; }
 
         .node text {
@@ -258,7 +257,6 @@
                 <div class="leyenda-item" onclick="filterGraph('group', 'civil-territorial')"><span class="leyenda-color" style="background:#999999"></span>Organización Territorial</div>
                 <div class="leyenda-item" onclick="filterGraph('group', 'civil-institucional')"><span class="leyenda-color" style="background:#bbbbbb"></span>Institución Social</div>
                 <div class="leyenda-item" onclick="filterGraph('group', 'mercado-empresas')"><span class="leyenda-color" style="background:#d1d1d1"></span>Mercado / Empresas</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'proyectual-academico')"><span class="leyenda-color" style="background:#6c5ce7"></span>Proyectual / Académico</div>
                 <div class="leyenda-item" onclick="filterGraph('group', 'marco-legal-normas')"><span class="leyenda-color" style="background:#e9e9e9"></span>Marco Legal (Normas)</div>
             </div>
             
@@ -289,7 +287,6 @@
                     <option value="civil-territorial">Organización Territorial</option>
                     <option value="civil-institucional">Institución Social</option>
                     <option value="mercado-empresas">Mercado / Empresa</option>
-                    <option value="proyectual-academico">Proyectual / Académico</option>
                     <option value="marco-legal-normas">Marco Legal / Norma</option>
                 </select>
                 <button onclick="renameNode()" style="background-color: #2980b9; margin-top: 10px;">Guardar Cambios</button>
@@ -329,7 +326,6 @@
                     <option value="civil-territorial">Organización Territorial</option>
                     <option value="civil-institucional">Institución Social</option>
                     <option value="mercado-empresas">Mercado / Empresa</option>
-                    <option value="proyectual-academico">Proyectual / Académico</option>
                     <option value="marco-legal-normas">Marco Legal / Norma</option>
                 </select>
             </div>
@@ -415,9 +411,9 @@
             { uid: "n0", id: "PLAN MARCO", group: "centro", anillo: 0, radius: 54 },
             { uid: "n1", id: "ESTADO NACIONAL", group: "estado-nacional", anillo: 3, radius: 25 },
             { uid: "n2", id: "MINISTERIO DE CAPITAL HUMANO", group: "estado-nacional", anillo: 3, radius: 25 },
-            { uid: "n3", id: "UBA (UNIV. DE BUENOS AIRES)", group: "proyectual-academico", anillo: 2, radius: 25 },
-            { uid: "n4", id: "UNM (UNIV. NAC. DE MORENO)", group: "proyectual-academico", anillo: 2, radius: 25 },
-            { uid: "n5", id: "FADU", group: "proyectual-academico", anillo: 1, radius: 30 }
+            { uid: "n3", id: "UBA (UNIV. DE BUENOS AIRES)", group: "civil-institucional", anillo: 2, radius: 25 },
+            { uid: "n4", id: "UNM (UNIV. NAC. DE MORENO)", group: "civil-institucional", anillo: 2, radius: 25 },
+            { uid: "n5", id: "FADU", group: "civil-institucional", anillo: 1, radius: 30 }
         ];
 
         let linksData = [
@@ -538,7 +534,6 @@
             "civil-territorial": "Organización Territorial",
             "civil-institucional": "Institución Social",
             "mercado-empresas": "Mercado / Empresas",
-            "proyectual-academico": "Proyectual / Académico",
             "marco-legal-normas": "Marco Legal (Normas)"
         };
 
