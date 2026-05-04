@@ -918,12 +918,25 @@
                 .on("end", (e,d) => { 
                     if(!e.active) sim.alphaTarget(0); 
                     if(d.id!=="PLAN MARCO") {
-                        const dist = Math.sqrt(Math.pow(d.x-width/2, 2) + Math.pow(d.y-height/2, 2));
+                        const bbox = svg.node().getBoundingClientRect();
+                        const w = bbox.width || window.innerWidth;
+                        const h = bbox.height || window.innerHeight;
+                        const dist = Math.sqrt(Math.pow(d.x - w/2, 2) + Math.pow(d.y - h/2, 2));
                         let bestR = d.anillo, minD = Infinity;
-                        for(let r in distAnillos) { let diff = Math.abs(dist - distAnillos[r]); if(diff < minD) { minD = diff; bestR = parseInt(r); } }
+                        for(let r in distAnillos) { 
+                            let diff = Math.abs(dist - distAnillos[r]); 
+                            if(diff < minD) { minD = diff; bestR = parseInt(r); } 
+                        }
                         d.anillo = bestR; 
                         
-                        if(!isStaticMode) { d.fx = null; d.fy = null; }
+                        if(isStaticMode) {
+                            const angle = Math.atan2(d.y - h/2, d.x - w/2);
+                            const targetR = distAnillos[bestR];
+                            d.fx = w/2 + targetR * Math.cos(angle);
+                            d.fy = h/2 + targetR * Math.sin(angle);
+                        } else {
+                            d.fx = null; d.fy = null;
+                        }
                         updateGraph();
                         saveToLocal();
                     }
