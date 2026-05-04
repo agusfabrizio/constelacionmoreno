@@ -217,6 +217,7 @@
             <button class="icon-btn" onclick="toggleListView()">📋 LISTA</button>
             <button class="icon-btn" onclick="printPDF()">🖨️ EXPORTAR PDF A3</button>
             <button class="icon-btn" onclick="exportHTML()" id="btn-export-web">🌐 EXPORTAR WEB</button>
+            <button class="icon-btn" style="color:var(--danger)" onclick="resetData()">♻️ RESET</button>
             <button class="icon-btn" onclick="togglePanel()" id="toggle-btn">⚙️ PANEL</button>
         </div>
 
@@ -913,6 +914,13 @@
             linksData = linksData.filter(l => !((l.source === src && l.target === tgt) || (l.source === tgt && l.target === src)));
             linksData.push({ source: src, target: tgt, tipo: document.getElementById("link-type").value, bidi: document.getElementById("link-bidi").checked });
             updateGraph();
+        }
+
+        function resetData() {
+            if(confirm("¿Estás seguro de que quieres resetear todos los datos? Se perderán tus cambios locales y se volverá a la versión del código.")) {
+                localStorage.clear();
+                location.reload();
+            }
         }
 
         window.addEventListener('resize', () => { width = window.innerWidth; height = window.innerHeight; svg.attr('width', width).attr('height', height); drawOrbits(); updateGraph(); });
