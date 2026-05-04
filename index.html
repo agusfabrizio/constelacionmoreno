@@ -6,6 +6,7 @@
     <title>Constelación Dinámica PLAN MARCO</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -50,7 +51,22 @@
             stroke: #bdc3c7;
             stroke-width: 1px;
             stroke-dasharray: 4, 4;
-            opacity: 0.4;
+            opacity: 0.8;
+        }
+
+        #sync-status {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 10000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .node circle {
@@ -270,6 +286,8 @@
             </g>
         </svg>
 
+        <div id="sync-status">Conectando...</div>
+
         <div id="leyenda">
             <div class="leyenda-seccion">
                 <h4>Actores (Jerarquía)</h4>
@@ -399,61 +417,81 @@
     </div>
 
     <script>
-        let selectedNodeId = null;
+        // Configuración Supabase
+        const SUPABASE_URL = 'https://dzmscpawchwnuufzibsk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bXNjcGF3Y2h3bnV1ZnppYnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4OTk0NjMsImV4cCI6MjA5MzQ3NTQ2M30.gHlEhPNRaaZsdXmxq36tiK6n16Auyl8wooAWxvSCsiY';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Persistencia
-        let isStaticMode = false;
+        async function saveToLocal() {
+            document.getElementById("sync-status").innerText = "Guardando...";
+            
+            // Backup local
+            localStorage.setItem('constelacion_nodes', JSON.stringify(nodesData));
+            localStorage.setItem('constelacion_links', JSON.stringify(linksData));
 
-        function saveToLocal() {
-            localStorage.setItem('constelacion_nodes', JSON.stringify(nodesData.map(n => ({ 
-                uid: n.uid || n.id, id: n.id, group: n.group, anillo: n.anillo, radius: n.radius,
-                x: n.x, y: n.y, fx: n.fx, fy: n.fy
-            }))));
-            localStorage.setItem('constelacion_links', JSON.stringify(linksData.map(l => ({ 
-                source: l.source.uid || l.source.id || l.source, 
-                target: l.target.uid || l.target.id || l.target, 
-                tipo: l.tipo, 
-                bidi: l.bidi 
-            }))));
-            localStorage.setItem('constelacion_mode', isStaticMode);
+            try {
+                // Guardar Nodos (Upsert)
+                const { error: nErr } = await supabaseClient.from('nodes').upsert(nodesData.map(n => ({
+                    uid: n.uid,
+                    name: n.id,
+                    group: n.group,
+                    anillo: n.anillo,
+                    radius: n.radius,
+                    x: n.x, y: n.y, fx: n.fx, fy: n.fy
+                })));
+
+                // Guardar Vínculos (Borrar y reinsertar para simplicidad)
+                await supabaseClient.from('links').delete().not('id', 'is', null);
+                const { error: lErr } = await supabaseClient.from('links').insert(linksData.map(l => ({
+                    source_uid: l.source.uid || l.source.id || l.source,
+                    target_uid: l.target.uid || l.target.id || l.target,
+                    tipo: l.tipo,
+                    bidi: l.bidi
+                })));
+
+                if(!nErr && !lErr) {
+                    document.getElementById("sync-status").innerText = "Sincronizado";
+                } else {
+                    document.getElementById("sync-status").innerText = "Error de Sinc.";
+                    console.error(nErr, lErr);
+                }
+            } catch(e) {
+                console.error(e);
+                document.getElementById("sync-status").innerText = "Error Offline";
+            }
         }
 
-        function loadFromLocal() {
-            const sn = localStorage.getItem('constelacion_nodes');
-            const sl = localStorage.getItem('constelacion_links');
-            const sm = localStorage.getItem('constelacion_mode');
+        async function loadFromLocal() {
+            document.getElementById("sync-status").innerText = "Cargando...";
             
-            if(sn && sn !== "null") {
-                try {
-                    const parsed = JSON.parse(sn);
-                    if (Array.isArray(parsed)) {
-                        nodesData = parsed;
-                        nodesData.forEach(n => { 
-                            if(!n.uid) n.uid = n.id; 
-                            n.radius = n.radius || (n.id === "PLAN MARCO" ? 54 : 20);
-                            if(isNaN(n.x) || n.x == null) n.x = window.innerWidth / 2 + (Math.random() * 20 - 10);
-                            if(isNaN(n.y) || n.y == null) n.y = window.innerHeight / 2 + (Math.random() * 20 - 10);
-                        });
+            try {
+                const { data: nData, error: nErr } = await supabaseClient.from('nodes').select('*');
+                const { data: lData, error: lErr } = await supabaseClient.from('links').select('*');
+
+                if (nData && nData.length > 0) {
+                    nodesData = nData.map(n => ({
+                        uid: n.uid, id: n.name, group: n.group, anillo: n.anillo, radius: n.radius,
+                        x: n.x, y: n.y, fx: n.fx, fy: n.fy
+                    }));
+
+                    if (lData) {
+                        linksData = lData.map(l => ({
+                            source: l.source_uid, target: l.target_uid, tipo: l.tipo, bidi: l.bidi
+                        }));
                     }
-                } catch(e) { console.error("Error cargando nodos", e); }
-            }
-            if(sl && sl !== "null") {
-                try {
-                    const parsed = JSON.parse(sl);
-                    if (Array.isArray(parsed)) {
-                        linksData = parsed.filter(l => {
-                            const srcNode = nodesData.find(n => n.uid === l.source || n.id === l.source);
-                            const tgtNode = nodesData.find(n => n.uid === l.target || n.id === l.target);
-                            if (srcNode && tgtNode) {
-                                l.source = srcNode.uid;
-                                l.target = tgtNode.uid;
-                                return true;
-                            }
-                            return false; // Eliminar vínculos huérfanos
-                        });
-                    }
-                } catch(e) { console.error("Error cargando vínculos", e); }
-            }
+                    
+                    updateGraph();
+                    document.getElementById("sync-status").innerText = "Sincronizado";
+                    return;
+                }
+            } catch(e) { console.warn("Fallo carga nube, usando local", e); }
+
+            // Fallback Local
+            if(nodesData.length === 0) loadDefaultData();
+            updateGraph();
+            document.getElementById("sync-status").innerText = "Local (Sin Nube)";
+
+            const sm = localStorage.getItem('constelacion_mode');
             if(sm === 'true') {
                 isStaticMode = true;
                 setTimeout(() => { 
