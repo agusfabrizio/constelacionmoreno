@@ -417,6 +417,12 @@
     </div>
 
     <script>
+        let nodesData = [];
+        let linksData = [];
+        let selectedNodeId = null;
+        let isStaticMode = false;
+        let showBidi = true;
+
         // Configuración Supabase
         const SUPABASE_URL = 'https://dzmscpawchwnuufzibsk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bXNjcGF3Y2h3bnV1ZnppYnNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4OTk0NjMsImV4cCI6MjA5MzQ3NTQ2M30.gHlEhPNRaaZsdXmxq36tiK6n16Auyl8wooAWxvSCsiY';
