@@ -127,6 +127,29 @@
         button { background-color: var(--text-main); color: white; font-weight: bold; cursor: pointer; border: none; margin-top: 5px; transition: filter 0.2s; }
         button:hover { filter: brightness(1.2); }
         .btn-danger { background-color: var(--danger); }
+        .btn-reset { color: var(--danger); }
+        .btn-save { background-color: #2980b9; margin-top: 10px; }
+        .btn-add { background-color: #27ae60; }
+        .hidden-el { display: none; }
+        .hr-divider { margin: 25px 0; border: 0; border-top: 1px solid #ddd; }
+        .mt-25 { margin-top: 25px; }
+        .mt-10 { margin-top: 10px; }
+
+        .bg-000 { background: #000000; }
+        .bg-333 { background: #333333; }
+        .bg-555 { background: #555555; }
+        .bg-777 { background: #777777; }
+        .bg-999 { background: #999999; }
+        .bg-bbb { background: #bbbbbb; }
+        .bg-d1d { background: #d1d1d1; }
+        .bg-e9e { background: #e9e9e9; }
+        .bg-jer { background: var(--color-jerarquica); }
+        .bg-pos { background: var(--color-positiva); }
+        .bg-neg { background: var(--color-negativa); }
+        .bg-tec { background: var(--color-tecnica); }
+        .bg-fin { background: var(--color-financiacion); }
+        .bg-pre { background: var(--color-presion); }
+        .bg-reg { background: var(--color-regulacion); }
 
         /* LEYENDA TÉCNICA */
         #leyenda { 
@@ -154,7 +177,7 @@
         .faded { opacity: 0.1 !important; transition: opacity 0.3s ease; }
 
         @media print {
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             @page { size: A3 landscape; margin: 0; }
             body { background-color: white !important; margin: 0; padding: 0; overflow: visible !important; }
             #control-panel, .global-controls, .zoom-btn { display: none !important; }
@@ -217,7 +240,7 @@
             <button class="icon-btn" onclick="toggleListView()">📋 LISTA</button>
             <button class="icon-btn" onclick="printPDF()">🖨️ EXPORTAR PDF A3</button>
             <button class="icon-btn" onclick="exportHTML()" id="btn-export-web">🌐 EXPORTAR WEB</button>
-            <button class="icon-btn" style="color:var(--danger)" onclick="resetData()">♻️ RESET</button>
+            <button class="icon-btn btn-reset" onclick="resetData()">♻️ RESET</button>
             <button class="icon-btn" onclick="togglePanel()" id="toggle-btn">⚙️ PANEL</button>
         </div>
 
@@ -250,25 +273,25 @@
         <div id="leyenda">
             <div class="leyenda-seccion">
                 <h4>Actores (Jerarquía)</h4>
-                <div class="leyenda-item" onclick="filterGraph('group', 'centro')"><span class="leyenda-color" style="background:#000000"></span>PLAN MARCO</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'estado-nacional')"><span class="leyenda-color" style="background:#333333"></span>Estado (Nacional)</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'estado-provincial')"><span class="leyenda-color" style="background:#555555"></span>Estado (Provincial)</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'estado-municipal')"><span class="leyenda-color" style="background:#777777"></span>Estado (Municipal)</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'civil-territorial')"><span class="leyenda-color" style="background:#999999"></span>Organización Territorial</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'civil-institucional')"><span class="leyenda-color" style="background:#bbbbbb"></span>Institución Social</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'mercado-empresas')"><span class="leyenda-color" style="background:#d1d1d1"></span>Mercado / Empresas</div>
-                <div class="leyenda-item" onclick="filterGraph('group', 'marco-legal-normas')"><span class="leyenda-color" style="background:#e9e9e9"></span>Marco Legal (Normas)</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'centro')"><span class="leyenda-color bg-000"></span>PLAN MARCO</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'estado-nacional')"><span class="leyenda-color bg-333"></span>Estado (Nacional)</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'estado-provincial')"><span class="leyenda-color bg-555"></span>Estado (Provincial)</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'estado-municipal')"><span class="leyenda-color bg-777"></span>Estado (Municipal)</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'civil-territorial')"><span class="leyenda-color bg-999"></span>Organización Territorial</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'civil-institucional')"><span class="leyenda-color bg-bbb"></span>Institución Social</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'mercado-empresas')"><span class="leyenda-color bg-d1d"></span>Mercado / Empresas</div>
+                <div class="leyenda-item" onclick="filterGraph('group', 'marco-legal-normas')"><span class="leyenda-color bg-e9e"></span>Marco Legal (Normas)</div>
             </div>
             
             <div class="leyenda-seccion">
-                <h4>Vínculos Relacionales</h4>
-                <div class="leyenda-item" onclick="filterGraph('link', 'jerarquica')"><span class="leyenda-color" style="background:#9E9E9E"></span>Dependencia jerárquica</div>
-                <div class="leyenda-item" onclick="filterGraph('link', 'positiva')"><span class="leyenda-color" style="background:#6B8E23"></span>Relación positiva</div>
-                <div class="leyenda-item" onclick="filterGraph('link', 'negativa')"><span class="leyenda-color" style="background:#FF7675"></span>Relación negativa</div>
-                <div class="leyenda-item" onclick="filterGraph('link', 'tecnica')"><span class="leyenda-color" style="background:#F39C12"></span>Relación técnica/funcional</div>
-                <div class="leyenda-item" onclick="filterGraph('link', 'financiacion')"><span class="leyenda-color" style="background:#27AE60"></span>Financiación</div>
-                <div class="leyenda-item" onclick="filterGraph('link', 'presion')"><span class="leyenda-color" style="background:#C0392B"></span>Presión / Reclamo</div>
-                <div class="leyenda-item" onclick="filterGraph('link', 'regulacion')"><span class="leyenda-color" style="background:#8E44AD"></span>Regulación / Control</div>
+                <h4>V vínculos Relacionales</h4>
+                <div class="leyenda-item" onclick="filterGraph('link', 'jerarquica')"><span class="leyenda-color bg-jer"></span>Dependencia jerárquica</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'positiva')"><span class="leyenda-color bg-pos"></span>Relación positiva</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'negativa')"><span class="leyenda-color bg-neg"></span>Relación negativa</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'tecnica')"><span class="leyenda-color bg-tec"></span>Relación técnica/funcional</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'financiacion')"><span class="leyenda-color bg-fin"></span>Financiación</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'presion')"><span class="leyenda-color bg-pre"></span>Presión / Reclamo</div>
+                <div class="leyenda-item" onclick="filterGraph('link', 'regulacion')"><span class="leyenda-color bg-reg"></span>Regulación / Control</div>
             </div>
         </div>
 
@@ -280,7 +303,7 @@
             </div>
             <div class="form-group">
                 <label>Categoría / Grupo</label>
-                <select id="edit-node-group">
+                <select id="edit-node-group" aria-label="Categoría del Actor">
                     <option value="estado-nacional">Estado (Nacional)</option>
                     <option value="estado-provincial">Estado (Provincial)</option>
                     <option value="estado-municipal">Estado (Municipal)</option>
@@ -289,12 +312,12 @@
                     <option value="mercado-empresas">Mercado / Empresa</option>
                     <option value="marco-legal-normas">Marco Legal / Norma</option>
                 </select>
-                <button onclick="renameNode()" style="background-color: #2980b9; margin-top: 10px;">Guardar Cambios</button>
+                <button onclick="renameNode()" class="btn-save">Guardar Cambios</button>
             </div>
             <div class="form-group">
                 <label>Peso Estratégico (Radio)</label>
-                <select id="edit-node-select" onchange="loadNodeRadius()" style="display:none"></select>
-                <select id="edit-node-radius" onchange="liveUpdateRadius(this.value)">
+                <select id="edit-node-select" onchange="loadNodeRadius()" class="hidden-el" aria-label="Seleccionar nodo oculto"></select>
+                <select id="edit-node-radius" onchange="liveUpdateRadius(this.value)" aria-label="Radio del Actor">
                     <option value="15">Tamaño 1 (15px)</option>
                     <option value="20">Tamaño 2 (20px)</option>
                     <option value="25">Tamaño 3 (25px)</option>
@@ -314,12 +337,12 @@
                 <div id="links-container"></div>
             </div>
 
-            <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
+            <hr class="hr-divider">
 
             <h3>Nuevo Nodo</h3>
             <div class="form-group"><input type="text" id="node-id" placeholder="Nombre completo"></div>
             <div class="form-group">
-                <select id="node-group">
+                <select id="node-group" aria-label="Grupo del nuevo nodo">
                     <option value="estado-nacional">Estado (Nacional)</option>
                     <option value="estado-provincial">Estado (Provincial)</option>
                     <option value="estado-municipal">Estado (Municipal)</option>
@@ -330,20 +353,20 @@
                 </select>
             </div>
             <div class="form-group">
-                <select id="node-ring">
+                <select id="node-ring" aria-label="Anillo del nuevo nodo">
                     <option value="1">Anillo 1 - Alta Injerencia</option>
                     <option value="2">Anillo 2 - Media Injerencia</option>
                     <option value="3">Anillo 3 - Baja Injerencia</option>
                     <option value="4">Anillo 4 - Satélite Externo</option>
                 </select>
             </div>
-            <button onclick="addNode()" style="background-color: #27ae60;">Añadir a Constelación</button>
+            <button onclick="addNode()" class="btn-add">Añadir a Constelación</button>
 
-            <h3 style="margin-top: 25px;">Trazar Dependencia</h3>
-            <div class="form-group"><label>Origen</label><select id="link-source"></select></div>
-            <div class="form-group"><label>Destino</label><select id="link-target"></select></div>
+            <h3 class="mt-25">Trazar Dependencia</h3>
+            <div class="form-group"><label>Origen</label><select id="link-source" aria-label="Origen del vínculo"></select></div>
+            <div class="form-group"><label>Destino</label><select id="link-target" aria-label="Destino del vínculo"></select></div>
             <div class="form-group">
-                <select id="link-type">
+                <select id="link-type" aria-label="Tipo de vínculo">
                     <option value="jerarquica">Dependencia jerárquica</option>
                     <option value="positiva">Relación positiva</option>
                     <option value="negativa">Relación negativa</option>
@@ -352,7 +375,7 @@
                     <option value="presion">Presión / Reclamo</option>
                     <option value="regulacion">Regulación / Control</option>
                 </select>
-                <label class="checkbox-label" style="margin-top:10px;"><input type="checkbox" id="link-bidi"> Reciprocidad (Doble Flecha)</label>
+                <label class="checkbox-label mt-10"><input type="checkbox" id="link-bidi"> Reciprocidad (Doble Flecha)</label>
             </div>
             <button onclick="addLink()">Establecer Vínculo</button>
         </div>
@@ -391,12 +414,36 @@
             const sl = localStorage.getItem('constelacion_links');
             const sm = localStorage.getItem('constelacion_mode');
             
-            if(sn) {
-                nodesData = JSON.parse(sn);
-                nodesData.forEach(n => { if(!n.uid) n.uid = n.id; });
+            if(sn && sn !== "null") {
+                try {
+                    const parsed = JSON.parse(sn);
+                    if (Array.isArray(parsed)) {
+                        nodesData = parsed;
+                        nodesData.forEach(n => { 
+                            if(!n.uid) n.uid = n.id; 
+                            n.radius = n.radius || (n.id === "PLAN MARCO" ? 54 : 20);
+                            if(isNaN(n.x) || n.x == null) n.x = window.innerWidth / 2 + (Math.random() * 20 - 10);
+                            if(isNaN(n.y) || n.y == null) n.y = window.innerHeight / 2 + (Math.random() * 20 - 10);
+                        });
+                    }
+                } catch(e) { console.error("Error cargando nodos", e); }
             }
-            if(sl) {
-                linksData = JSON.parse(sl);
+            if(sl && sl !== "null") {
+                try {
+                    const parsed = JSON.parse(sl);
+                    if (Array.isArray(parsed)) {
+                        linksData = parsed.filter(l => {
+                            const srcNode = nodesData.find(n => n.uid === l.source || n.id === l.source);
+                            const tgtNode = nodesData.find(n => n.uid === l.target || n.id === l.target);
+                            if (srcNode && tgtNode) {
+                                l.source = srcNode.uid;
+                                l.target = tgtNode.uid;
+                                return true;
+                            }
+                            return false; // Eliminar vínculos huérfanos
+                        });
+                    }
+                } catch(e) { console.error("Error cargando vínculos", e); }
             }
             if(sm === 'true') {
                 isStaticMode = true;
@@ -751,13 +798,20 @@
 
             simulation.on("tick", () => {
                 allLinks.attr("d", d => {
+                    if (!d.target || !d.source || isNaN(d.target.x) || isNaN(d.source.x)) return "";
                     const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dist = Math.sqrt(dx*dx + dy*dy);
                     if (dist === 0) return "";
-                    const tx = d.target.x - (dx * (d.target.radius + 14)) / dist, ty = d.target.y - (dy * (d.target.radius + 14)) / dist;
-                    const sx = d.source.x + (dx * ((d.bidi && showBidi) ? d.source.radius + 14 : d.source.radius)) / dist, sy = d.source.y + (dy * ((d.bidi && showBidi) ? d.source.radius + 14 : d.source.radius)) / dist;
+                    const tr = d.target.radius || 20;
+                    const sr = d.source.radius || 20;
+                    const tx = d.target.x - (dx * (tr + 14)) / dist, ty = d.target.y - (dy * (tr + 14)) / dist;
+                    const sx = d.source.x + (dx * ((d.bidi && showBidi) ? sr + 14 : sr)) / dist, sy = d.source.y + (dy * ((d.bidi && showBidi) ? sr + 14 : sr)) / dist;
                     return `M${sx},${sy}A${dist*1.15},${dist*1.15} 0 0,1 ${tx},${ty}`;
                 });
-                allNodes.attr("transform", d => `translate(${d.x},${d.y})`);
+                allNodes.attr("transform", d => {
+                    const x = isNaN(d.x) ? window.innerWidth / 2 : d.x;
+                    const y = isNaN(d.y) ? window.innerHeight / 2 : d.y;
+                    return `translate(${x},${y})`;
+                });
             });
             updateDropdowns();
             updateLinksList();
@@ -901,12 +955,7 @@
 
             const node = nodesData.find(n => n.id === selectedNodeId);
             if(node) {
-                if(newName !== selectedNodeId) {
-                    linksData.forEach(l => {
-                        if (l.source === selectedNodeId || l.source.id === selectedNodeId) l.source = newName;
-                        if (l.target === selectedNodeId || l.target.id === selectedNodeId) l.target = newName;
-                    });
-                }
+                // Ya no mutamos l.source manualmente si usamos UIDs persistentes.
                 node.id = newName;
                 node.group = newGroup;
                 selectedNodeId = newName; 
@@ -917,8 +966,11 @@
         function deleteNode() {
             if(!selectedNodeId || selectedNodeId === "PLAN MARCO") return;
             if(!confirm(`¿Eliminar actor '${selectedNodeId}' y sus vínculos?`)) return;
-            nodesData = nodesData.filter(n => n.id !== selectedNodeId);
-            linksData = linksData.filter(l => (l.source.id || l.source) !== selectedNodeId && (l.target.id || l.target) !== selectedNodeId);
+            const node = nodesData.find(n => n.id === selectedNodeId);
+            if (!node) return;
+            const uid = node.uid;
+            nodesData = nodesData.filter(n => n.uid !== uid);
+            linksData = linksData.filter(l => (l.source.uid || l.source) !== uid && (l.target.uid || l.target) !== uid);
             selectedNodeId = null; updateGraph();
         }
 
@@ -930,9 +982,18 @@
         }
 
         function addLink() {
-            const src = document.getElementById("link-source").value, tgt = document.getElementById("link-target").value;
-            if(src === tgt) return;
-            linksData = linksData.filter(l => !((l.source === src && l.target === tgt) || (l.source === tgt && l.target === src)));
+            const srcId = document.getElementById("link-source").value;
+            const tgtId = document.getElementById("link-target").value;
+            if(srcId === tgtId) return;
+            
+            const srcNode = nodesData.find(n => n.id === srcId);
+            const tgtNode = nodesData.find(n => n.id === tgtId);
+            if (!srcNode || !tgtNode) return;
+            
+            const src = srcNode.uid;
+            const tgt = tgtNode.uid;
+
+            linksData = linksData.filter(l => !(((l.source.uid || l.source) === src && (l.target.uid || l.target) === tgt) || ((l.source.uid || l.source) === tgt && (l.target.uid || l.target) === src)));
             linksData.push({ source: src, target: tgt, tipo: document.getElementById("link-type").value, bidi: document.getElementById("link-bidi").checked });
             updateGraph();
         }
