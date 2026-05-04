@@ -123,7 +123,7 @@
             position: absolute; 
             top: 75px; 
             right: 20px; 
-            width: 200px; /* Reduced by 40% (was 330) */
+            width: 200px; 
             background: var(--panel-bg); 
             padding: 12px; 
             border-radius: 12px; 
@@ -131,7 +131,7 @@
             max-height: calc(100vh - 100px); 
             overflow-y: auto; 
             border: 1px solid var(--border-color); 
-            transition: transform 0.3s; 
+            transition: transform 0.3s, opacity 0.3s; 
             transform-origin: top right;
         }
         #control-panel.hidden { transform: scale(0.9) translateX(150%); opacity: 0; pointer-events: none; }
@@ -252,12 +252,10 @@
 
     <div id="viz-container">
         <div class="global-controls">
-            <button class="icon-btn" onclick="toggleMode()" id="btn-mode">❄️ FIJAR MAPA</button>
+            <button class="icon-btn" onclick="toggleMode()" id="btn-mode" style="display: none;">❄️ FIJAR MAPA</button>
             <button class="icon-btn" onclick="toggleListView()">📋 LISTA</button>
             <button class="icon-btn" onclick="printPDF()">🖨️ EXPORTAR PDF A3</button>
-            <button class="icon-btn" onclick="exportHTML()" id="btn-export-web">🌐 EXPORTAR WEB</button>
-            <button class="icon-btn btn-reset" onclick="resetData()">♻️ RESET</button>
-            <button class="icon-btn" onclick="togglePanel()" id="toggle-btn">⚙️ PANEL</button>
+            <button class="icon-btn" onclick="togglePanel()" id="toggle-btn">⚙️ PANEL (ADMIN)</button>
         </div>
 
         <svg id="network">
@@ -312,7 +310,7 @@
             </div>
         </div>
 
-        <div id="control-panel">
+        <div id="control-panel" class="hidden">
             <h3>Gestión de Actor</h3>
             <div class="form-group">
                 <label>Nombre Actor</label>
@@ -421,6 +419,7 @@
         let selectedNodeId = null;
         let isStaticMode = false;
         let showBidi = true;
+        let isAdmin = false;
 
         // Configuración Supabase
         const SUPABASE_URL = 'https://dzmscpawchwnuufzibsk.supabase.co';
@@ -533,7 +532,7 @@
                 { uid: "n17", id: "SISU", group: "estado-nacional", anillo: 3, radius: 25 },
                 { uid: "n18", id: "FISCALÍAS", group: "estado-provincial", anillo: 4, radius: 20 },
                 { uid: "n19", id: "JUZGADOS / DEF.", group: "estado-provincial", anillo: 4, radius: 20 },
-                { uid: "n20", id: "POLICÍA", group: "estado-provincial", anillo: 3, radius: 20 },
+                { uid: "n20", id: "POLICÍA", group: "estado-provincial", anillo: 4, radius: 20 },
                 { uid: "n21", id: "LEY 8912", group: "marco-legal-normas", anillo: 3, radius: 25 },
                 { uid: "n22", id: "LEY HÁBITAT", group: "marco-legal-normas", anillo: 3, radius: 25 },
                 { uid: "n23", id: "CÓDIGO URBANO", group: "marco-legal-normas", anillo: 2, radius: 22 },
@@ -608,15 +607,26 @@
                 });
         }
 
-        let panelVisible = true;
+        let panelVisible = false;
         function togglePanel() {
+            if (!isAdmin) {
+                const pass = prompt("Ingrese contraseña de administrador para editar:");
+                if (pass === "admin123") {
+                    isAdmin = true;
+                    document.getElementById("btn-mode").style.display = "inline-block";
+                } else {
+                    if (pass !== null) alert("Contraseña incorrecta.");
+                    return;
+                }
+            }
+            
             panelVisible = !panelVisible;
             const cp = document.getElementById("control-panel");
             if(cp) cp.classList.toggle("hidden", !panelVisible);
             const leg = document.getElementById("leyenda");
             if(leg) leg.classList.toggle("hidden", !panelVisible);
             const tb = document.getElementById("toggle-btn");
-            if(tb) tb.innerText = panelVisible ? "⚙️ CERRAR" : "⚙️ PANEL";
+            if(tb) tb.innerText = panelVisible ? "⚙️ CERRAR PANEL" : "⚙️ PANEL (ADMIN)";
         }
 
         function toggleMode() {
@@ -638,52 +648,7 @@
             saveToLocal();
         }
 
-        function exportHTML() {
-            saveToLocal();
-            const cleanNodes = nodesData.map(n => ({ 
-                id: n.id, group: n.group, anillo: n.anillo, radius: n.radius,
-                x: n.x, y: n.y, fx: n.fx, fy: n.fy
-            }));
-            const cleanLinks = linksData.map(l => ({ 
-                source: l.source.id || l.source, 
-                target: l.target.id || l.target, 
-                tipo: l.tipo, 
-                bidi: l.bidi 
-            }));
-            
-            const clone = document.documentElement.cloneNode(true);
-            
-            const panel = clone.querySelector("#control-panel");
-            if (panel) panel.remove();
-            
-            const btnWeb = clone.querySelector("#btn-export-web");
-            if (btnWeb) btnWeb.remove();
-            const btnPanel = clone.querySelector("#toggle-btn");
-            if (btnPanel) btnPanel.remove();
-            
-            clone.querySelector("#orbitas-layer").innerHTML = "";
-            clone.querySelector("#links-layer").innerHTML = "";
-            clone.querySelector("#nodes-layer").innerHTML = "";
-            
-            const dataScript = document.createElement("script");
-            dataScript.textContent = `
-                window.onload = function() {
-                    nodesData = ${JSON.stringify(cleanNodes).replace(/<\//g, "<\\/")};
-                    linksData = ${JSON.stringify(cleanLinks).replace(/<\//g, "<\\/")};
-                    updateGraph();
-                };
-            `;
-            clone.querySelector("body").appendChild(dataScript);
-            
-            const htmlContent = "<!DOCTYPE html>\n" + clone.outerHTML;
-            const blob = new Blob([htmlContent], { type: "text/html" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "constelacion_interactiva.html";
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+
 
         function toggleListView() {
             const lv = document.getElementById("list-view");
@@ -732,7 +697,7 @@
                     item.innerHTML = `
                         <div class="list-item-header">
                             <span class="list-item-name">${n.id}</span>
-                            <select class="list-item-ring" onchange="updateNodeRing('${n.id}', this.value)">
+                            <select class="list-item-ring" onchange="updateNodeRing('${n.id}', this.value)" ${isAdmin ? '' : 'disabled'}>
                                 <option value="0" ${n.anillo==0?'selected':''}>Centro</option>
                                 <option value="1" ${n.anillo==1?'selected':''}>Anillo 1</option>
                                 <option value="2" ${n.anillo==2?'selected':''}>Anillo 2</option>
@@ -760,8 +725,11 @@
             }
         }
 
-        const distAnillos = { 1: 170, 2: 300, 3: 430, 4: 580 };
-        const simulation = d3.forceSimulation().force("link", d3.forceLink().id(d => d.uid).strength(0.05)).force("charge", d3.forceManyBody().strength(-1800)).force("collide", d3.forceCollide().radius(d => (d.radius || 20) + 45).iterations(3));
+        const distAnillos = { 1: 150, 2: 260, 3: 380, 4: 500 };
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.uid).strength(0.05))
+            .force("charge", d3.forceManyBody().strength(-2000))
+            .force("collide", d3.forceCollide().radius(d => (d.radius || 20) + 55).iterations(4));
 
         function drawOrbits(w, h) {
             layerOrbitas.selectAll("circle").data([1,2,3,4]).join("circle").attr("class", "orbita").attr("cx", w/2).attr("cy", h/2).attr("r", d => distAnillos[d]);
@@ -776,12 +744,21 @@
             drawOrbits(w, h);
 
             simulation.force("center", d3.forceCenter(w / 2, h / 2))
-                      .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(1.0));
+                      .force("r", d3.forceRadial(d => d.anillo === 0 ? 0 : distAnillos[d.anillo], w / 2, h / 2).strength(1.5));
             
             simulation.nodes(nodesData);
-            simulation.force("link").links(linksData).distance(80).strength(0.5);
+            simulation.force("link").links(linksData)
+                .distance(d => {
+                    const r1 = d.source.anillo === 0 ? 0 : distAnillos[d.source.anillo];
+                    const r2 = d.target.anillo === 0 ? 0 : distAnillos[d.target.anillo];
+                    const ringDist = Math.abs(r1 - r2);
+                    // Si están en diferentes anillos, la distancia ideal es la diferencia de radios
+                    // Si están en el mismo anillo, mantenemos una distancia de separación saludable
+                    return ringDist > 0 ? ringDist : 120;
+                })
+                .strength(0.15); // Fuerza reducida para que el anillo (fuerza radial) mande
             
-            const lk = layerLinks.selectAll(".link").data(linksData, d => `${d.source?.id || d.source}-${d.target?.id || d.target}`);
+            const lk = layerLinks.selectAll(".link").data(linksData, d => `${d.source?.id || d.source}-${d.target?.id || d.target}-${d.tipo}`);
             lk.exit().remove();
             const lkEnter = lk.enter().append("path").attr("class", d => `link link-${d.tipo}`);
             const allLinks = lkEnter.merge(lk).attr("class", d => `link link-${d.tipo}`)
@@ -850,13 +827,30 @@
             simulation.on("tick", () => {
                 allLinks.attr("d", d => {
                     if (!d.target || !d.source || isNaN(d.target.x) || isNaN(d.source.x)) return "";
+                    
+                    // Identificar vínculos hermanos entre los mismos nodos para evitar superposición
+                    const siblings = linksData.filter(l => 
+                        ((l.source.uid || l.source) === (d.source.uid || d.source) && (l.target.uid || l.target) === (d.target.uid || d.target)) ||
+                        ((l.source.uid || l.source) === (d.target.uid || d.target) && (l.target.uid || l.target) === (d.source.uid || d.source))
+                    );
+                    
+                    const index = siblings.indexOf(d);
+                    const total = siblings.length;
+                    
                     const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dist = Math.sqrt(dx*dx + dy*dy);
                     if (dist === 0) return "";
+                    
                     const tr = d.target.radius || 20;
                     const sr = d.source.radius || 20;
+                    
+                    // Curvatura variable: el primero es más recto, los siguientes más curvos
+                    const curveFactor = 1.0 + (index * 0.35); 
+                    const arcRadius = dist * curveFactor;
+
                     const tx = d.target.x - (dx * (tr + 14)) / dist, ty = d.target.y - (dy * (tr + 14)) / dist;
                     const sx = d.source.x + (dx * ((d.bidi && showBidi) ? sr + 14 : sr)) / dist, sy = d.source.y + (dy * ((d.bidi && showBidi) ? sr + 14 : sr)) / dist;
-                    return `M${sx},${sy}A${dist*1.15},${dist*1.15} 0 0,1 ${tx},${ty}`;
+                    
+                    return `M${sx},${sy}A${arcRadius},${arcRadius} 0 0,1 ${tx},${ty}`;
                 });
                 allNodes.attr("transform", d => {
                     const x = isNaN(d.x) ? window.innerWidth / 2 : d.x;
@@ -895,17 +889,17 @@
                 item.className = "link-list-item";
                 item.innerHTML = `
                     <span><b>${l.tipo}:</b> ${otherId}</span>
-                    <button class="btn-cut" onclick="removeLink('${sId}', '${tId}')">Cortar</button>
+                    <button class="btn-cut" onclick="removeLink('${sId}', '${tId}', '${l.tipo}')">Cortar</button>
                 `;
                 container.appendChild(item);
             });
         }
 
-        function removeLink(src, tgt) {
+        function removeLink(src, tgt, type) {
             linksData = linksData.filter(l => {
                 const s = l.source.id || l.source;
                 const t = l.target.id || l.target;
-                return !(s === src && t === tgt);
+                return !(s === src && t === tgt && l.tipo === type);
             });
             updateGraph();
             saveToLocal();
@@ -948,14 +942,18 @@
         }
 
         function drag(sim) {
-            return d3.drag().on("start", (e,d) => { 
+            return d3.drag()
+                .on("start", (e,d) => { 
+                    if (!isAdmin) return;
                     if(!e.active && !isStaticMode) sim.alphaTarget(0.3).restart(); 
                     if(d.id!=="PLAN MARCO") { d.fx=d.x; d.fy=d.y; } 
                 })
                 .on("drag", (e,d) => { 
+                    if (!isAdmin) return;
                     if(d.id!=="PLAN MARCO") { d.fx=e.x; d.fy=e.y; } 
                 })
                 .on("end", (e,d) => { 
+                    if (!isAdmin) return;
                     if(!e.active) sim.alphaTarget(0); 
                     if(d.id!=="PLAN MARCO") {
                         const bbox = svg.node().getBoundingClientRect();
@@ -1056,6 +1054,7 @@
         function addLink() {
             const srcId = document.getElementById("link-source").value;
             const tgtId = document.getElementById("link-target").value;
+            const type = document.getElementById("link-type").value;
             if(srcId === tgtId) return;
             
             const srcNode = nodesData.find(n => n.id === srcId);
@@ -1065,18 +1064,20 @@
             const src = srcNode.uid;
             const tgt = tgtNode.uid;
 
-            linksData = linksData.filter(l => !(((l.source.uid || l.source) === src && (l.target.uid || l.target) === tgt) || ((l.source.uid || l.source) === tgt && (l.target.uid || l.target) === src)));
-            linksData.push({ source: src, target: tgt, tipo: document.getElementById("link-type").value, bidi: document.getElementById("link-bidi").checked });
+            // Solo eliminar si existe el MISMO vínculo (mismo origen, destino y tipo)
+            linksData = linksData.filter(l => !((l.source.uid || l.source) === src && (l.target.uid || l.target) === tgt && l.tipo === type));
+            
+            linksData.push({ 
+                source: src, 
+                target: tgt, 
+                tipo: type, 
+                bidi: document.getElementById("link-bidi").checked 
+            });
             updateGraph();
             saveToLocal();
         }
 
-        function resetData() {
-            if(confirm("¿Estás seguro de que deseas resetear todos los datos y posiciones? Se perderán los cambios manuales.")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
+
 
         window.addEventListener('resize', () => { width = window.innerWidth; height = window.innerHeight; svg.attr('width', width).attr('height', height); drawOrbits(); updateGraph(); });
         loadFromLocal();
